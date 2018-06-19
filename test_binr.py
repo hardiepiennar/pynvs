@@ -158,3 +158,15 @@ class Tests(unittest.TestCase):
 
         # TODO: Check if packet contains multiple of 5 bytes
 
+
+    def test_request_sv_ephemeris(self):
+        # Generate packet
+        packet = binr.request_sv_ephemeris(binr.GPS, 2)
+        self.assertEquals(packet, [0x10, 0x19,0x01,0x02,0x10,0x03])
+        packet = binr.request_sv_ephemeris(binr.GLONASS, 0,-2)
+        self.assertEquals(packet, [0x10, 0x19,0x02, 0x00, 0xFE, 0x10,0x03])
+
+        # Generate bad packets
+        #TODO: system out of range
+        #TODO: sat numbers out of range
+        #TODO: specifying carrier for GPSs

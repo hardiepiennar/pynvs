@@ -222,9 +222,9 @@ def request_status_of_receiver_channels():
     """
     return [0x10, 0x17, 0x10, 0x03]
 
-def print_status_of_receiver_channels(data):
+def process_status_of_receiver_channels(data):
     """
-    Print the processed result of the status of receiver channel request.
+    Process the response of the status of receiver channel request.
 
     arguments:
         data - data portion of response message
@@ -265,3 +265,62 @@ def print_status_of_receiver_channels(data):
                                   "Status":ch_status,
                                   "Pseudorange Sign":pseudo_status})
     return receiver_channels
+
+def print_status_of_receiver_channels(channel_status):
+    """
+    Print the processed result of the status of receiver channel request.
+    """
+    for i in range(len(channel_status)):
+        if channel_status[i]["System"] == 1:
+            sys = "GPS"
+        elif channel_status[i]["System"] == 2:
+            sys = "GLO"
+        elif channel_status[i]["System"] == 4:
+            sys = "SBAS"
+        elif channel_status[i]["System"] == 8:
+            sys = "Galileo E1b"
+        else:
+            sys = "None"
+        
+        if channel_status[i]["Status"] == 0:
+            stat = "Auto"
+        elif channel_status[i]["Status"] == 1:
+            stat = "Manual"
+        elif channel_status[i]["Status"] == 2:
+            stat = "Testing"
+        elif channel_status[i]["Status"] == 3:
+            stat = "Error"
+        else:
+            stat = "None"
+
+        if channel_status[i]["Pseudorange Sign"] == 0:
+            pseudo = "Pseudorange Digitization and Measurement"
+        elif channel_status[i]["Pseudorange Sign"] == 1:
+            pseudo = "Failure"
+        elif channel_status[i]["Pseudorange Sign"] == 2:
+            pseudo = "Pseudorange Measurement"
+        else:
+            pseudo = "None"
+
+        print("Channel: "+str(i)+": "+str(sys)+"("\
+            +str(channel_status[i]["Number"])+")\tSNR: "\
+            +str(channel_status[i]["SNR"])+"\t"\
+            +str(stat)+"\t"\
+            +str(pseudo))
+
+def request_sv_ephemeris(system, sat_number, carrier=None):
+    """
+    Requests the ephemerides of the specified satellite.
+
+    arguments:
+        system - 1-GPS, 2-GLONASS
+        sat_number - 1-32(GPS), 1-24(GLONASS)
+        carrier - GLONASS Carrier frequency number
+    """
+    # TODO: Test input values
+    packet = [0x10, 0x19, system, sat_number]
+    if carrier != None:
+        packet = packet + [(256-(carrier*-1))]
+    packet = packet + [0x10, 0x03]
+
+    return packet
