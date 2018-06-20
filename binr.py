@@ -308,17 +308,28 @@ def print_status_of_receiver_channels(channel_status):
             +str(stat)+"\t"\
             +str(pseudo))
 
-def request_sv_ephemeris(system, sat_number, carrier=None):
+def request_sv_ephemeris(sat_system, sat_no, carrier=None):
     """
     Requests the ephemerides of the specified satellite.
 
     arguments:
-        system - 1-GPS, 2-GLONASS
-        sat_number - 1-32(GPS), 1-24(GLONASS)
+        sat_system - 1-GPS, 2-GLONASS
+        sat_no - 1-32(GPS), 1-24(GLONASS)
         carrier - GLONASS Carrier frequency number
     """
-    # TODO: Test input values
-    packet = [0x10, 0x19, system, sat_number]
+    # Test input values
+    if sat_system != GPS and sat_system != GLONASS:
+        raise ValueError("Satellite system invalid: "+str(sat_system))
+    if sat_system == GPS:
+        if sat_no < 1 or sat_no > 32:
+            raise ValueError("SPS satellite number not valid: "+str(sat_no))
+    else:
+        if sat_no < 1 or sat_no > 24:
+            raise ValueError("Glonass satellite number not valid: "+str(sat_no))
+    # TODO: create carrier check
+
+    # Create package
+    packet = [0x10, 0x19, sat_system, sat_no]
     if carrier != None:
         packet = packet + [(256-(carrier*-1))]
     packet = packet + [0x10, 0x03]

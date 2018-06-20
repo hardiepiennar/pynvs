@@ -167,6 +167,10 @@ class Tests(unittest.TestCase):
         self.assertEquals(packet, [0x10, 0x19,0x02, 0x00, 0xFE, 0x10,0x03])
 
         # Generate bad packets
-        #TODO: system out of range
-        #TODO: sat numbers out of range
+        with self.assertRaises(ValueError):
+            packet = binr.request_sv_ephemeris(-1, 2)
+        with self.assertRaises(ValueError):
+            packet = binr.request_sv_ephemeris(3, 2)
+        with self.assertRaises(ValueError):
+            packet = binr.request_sv_ephemeris(binr.GPS, -1)
         #TODO: specifying carrier for GPSs
