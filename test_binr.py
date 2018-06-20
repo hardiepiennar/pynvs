@@ -174,3 +174,30 @@ class Tests(unittest.TestCase):
         with self.assertRaises(ValueError):
             packet = binr.request_sv_ephemeris(binr.GPS, -1)
         #TODO: specifying carrier for GPSs
+
+    def test_process_sv_ephemeris(self):
+        # Given test data return results
+        data = b'\x01\x01\x00\x80\x0c\xc1\xc5\x7f\xa5,\xf2\xd2\x1f\xb7@\x84\xf9?\x00\x00\xc7\xb4\x00\x00\x00\xccw5\x80?\x00\xe0\xb96\x00\x00\x80\x91\xaa!\xb4@\x00\x00\x00\x00\xb6\xbd\xb3A\x00\x000\xb4\xf0\x00\xf5\xbc\x9b\xff\x08\xc0\x00\x00\x0c4\x9e\xef\xd4\x0b\x93\x19\xef?\x00|\x8cCfO\xf8\xbc\xda\x9d\xe4?\x8c\x1eW\x9dXM\xa2\xbd\r\x12\x87F\xb3$;=\x00\x80\xbb6\x00\x00\x00\x00\xb6\xbd\xb3A\x00\x00\x00\x00\x00\x00x\xac\x1f.n\xbd\x01\x006\x00'
+        sv_ephemeris = binr.process_sv_ephemeris(data)
+        self.assertEquals(sv_ephemeris["System"], binr.GPS)
+        self.assertEquals(sv_ephemeris["PRN"], 1)
+        self.assertEquals(sv_ephemeris["C_rs"], -8.78125)
+        self.assertEquals(sv_ephemeris["dn"], 4.7037673235605926e-12)
+        self.assertEquals(sv_ephemeris["M_0"], 1.5947882798474748)
+        self.assertEquals(sv_ephemeris["C_uc"], -3.7066638469696045e-07)
+        self.assertEquals(sv_ephemeris["e"], 0.00791448203381151)
+        self.assertEquals(sv_ephemeris["sqrtA"], 5153.666282653809)
+        self.assertEquals(sv_ephemeris["t_oe"], 331200000.0)
+        self.assertEquals(sv_ephemeris["C_ic"], -1.6391277313232422e-07)
+        self.assertEquals(sv_ephemeris["Omega_0"], -3.124808765627783)
+        self.assertEquals(sv_ephemeris["C_is"], 1.30385160446167e-07)
+        self.assertEquals(sv_ephemeris["I_0"], 0.9718718749131658)
+        self.assertEquals(sv_ephemeris["C_rc"], 280.96875)
+        self.assertEquals(sv_ephemeris["w"], 0.6442693415469705)
+        self.assertEquals(sv_ephemeris["Omega_dot"], -8.322846679971361e-12)
+        self.assertEquals(sv_ephemeris["IDOT"], 9.643258823294288e-14)
+        self.assertEquals(sv_ephemeris["T_GD"], 5.587935447692871e-06)
+        self.assertEquals(sv_ephemeris["t_oc"], 331200000.0)
+        self.assertEquals(sv_ephemeris["a_f2"], 0.0)
+        self.assertEquals(sv_ephemeris["a_f1"], -3.524291969370097e-12)
+        self.assertEquals(sv_ephemeris["a_f0"], -0.05814945325255394)

@@ -33,6 +33,12 @@ channel_status = binr.process_status_of_receiver_channels(data["data"])
 binr.print_status_of_receiver_channels(channel_status)
 
 print("Requesting satellite ephemeris")
+ser.write(binr.request_sv_ephemeris(binr.GPS, 3))
+buffer = ser.read(1000)
+data, buffer = binr.process_msg(buffer)
+print(data)
+print(len(data["data"]))
+
 try:
     while True:
 
