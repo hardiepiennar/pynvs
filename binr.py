@@ -351,33 +351,40 @@ def process_sv_ephemeris(data):
 
     # Grab and unpack data
     sat_system = data[0]
-    prn = data[1] # On-booard number
-    c_rs = struct.unpack('<f',bytearray(data[2:2+4]))[0] # Orbit Radius Sine Correction [m]
-    dn = struct.unpack('<f',bytearray(data[6:6+4]))[0] # Difference between principle motion and defined motion [rad/ms]
-    m_0 = struct.unpack('<d',bytearray(data[10:10+8]))[0] # Mean Anomaly[rad]
-    c_uc = struct.unpack('<f',bytearray(data[18:18+4]))[0] # Longitude Argument Cosine Correction [rad]
-    e = struct.unpack('<d',bytearray(data[22:22+8]))[0] # Eccentricity
-    c_us = struct.unpack('<f',bytearray(data[30:30+4]))[0] # Latitude Argument Sine Correction [rad]
-    sqrtA = struct.unpack('<d',bytearray(data[34:34+8]))[0] # Square root of the major semi-axis [sqrt_m]
-    t_oe = struct.unpack('<d',bytearray(data[42:42+8]))[0] # Ephemerides reference time [ms]
-    c_ic = struct.unpack('<f',bytearray(data[50:50+4]))[0] # Cosine correction to the inclination angle [rad]
-    omega_0 = struct.unpack('<d',bytearray(data[54:54+8]))[0] # Orbital Plane Ascending Node Longitude [rad]
-    c_is = struct.unpack('<f',bytearray(data[62:62+4]))[0] # Sine correction to the inclination angle [rad]
-    i_0 = struct.unpack('<d',bytearray(data[66:66+8]))[0] # Inclination angle [rad]
-    c_rc = struct.unpack('<f',bytearray(data[74:74+4]))[0] # Orbit Radius Cosine Correction [m]
-    w = struct.unpack('<d',bytearray(data[78:78+8]))[0] # Ascending node-perigee angle [rad]
-    omega_dot = struct.unpack('<d',bytearray(data[86:86+8]))[0] # Direct Descending Change Speed [rad/ms]
-    idot = struct.unpack('<d',bytearray(data[94:94+8]))[0] # Inclination angle change speed [rad/ms]
-    t_gd = struct.unpack('<f',bytearray(data[102:102+4]))[0] # Group Differential Delay Estimation [ms]
-    t_oc = struct.unpack('<d',bytearray(data[106:106+8]))[0] # Time correction [ms]
-    a_f2 = struct.unpack('<f',bytearray(data[114:114+4]))[0] # Time correction [ms/ms^2]
-    a_f1 = struct.unpack('<f',bytearray(data[118:118+4]))[0] # Time correction [ms/ms^2]
-    a_f0 = struct.unpack('<f',bytearray(data[122:122+4]))[0] # Time correction [ms]
-    #TODO: read ura and iode
+    if sat_system == GPS:
+        prn = data[1] # On-booard number
+        c_rs = struct.unpack('<f',bytearray(data[2:2+4]))[0] # Orbit Radius Sine Correction [m]
+        dn = struct.unpack('<f',bytearray(data[6:6+4]))[0] # Difference between principle motion and defined motion [rad/ms]
+        m_0 = struct.unpack('<d',bytearray(data[10:10+8]))[0] # Mean Anomaly[rad]
+        c_uc = struct.unpack('<f',bytearray(data[18:18+4]))[0] # Longitude Argument Cosine Correction [rad]
+        e = struct.unpack('<d',bytearray(data[22:22+8]))[0] # Eccentricity
+        c_us = struct.unpack('<f',bytearray(data[30:30+4]))[0] # Latitude Argument Sine Correction [rad]
+        sqrtA = struct.unpack('<d',bytearray(data[34:34+8]))[0] # Square root of the major semi-axis [sqrt_m]
+        t_oe = struct.unpack('<d',bytearray(data[42:42+8]))[0] # Ephemerides reference time [ms]
+        c_ic = struct.unpack('<f',bytearray(data[50:50+4]))[0] # Cosine correction to the inclination angle [rad]
+        omega_0 = struct.unpack('<d',bytearray(data[54:54+8]))[0] # Orbital Plane Ascending Node Longitude [rad]
+        c_is = struct.unpack('<f',bytearray(data[62:62+4]))[0] # Sine correction to the inclination angle [rad]
+        i_0 = struct.unpack('<d',bytearray(data[66:66+8]))[0] # Inclination angle [rad]
+        c_rc = struct.unpack('<f',bytearray(data[74:74+4]))[0] # Orbit Radius Cosine Correction [m]
+        w = struct.unpack('<d',bytearray(data[78:78+8]))[0] # Ascending node-perigee angle [rad]
+        omega_dot = struct.unpack('<d',bytearray(data[86:86+8]))[0] # Direct Descending Change Speed [rad/ms]
+        idot = struct.unpack('<d',bytearray(data[94:94+8]))[0] # Inclination angle change speed [rad/ms]
+        t_gd = struct.unpack('<f',bytearray(data[102:102+4]))[0] # Group Differential Delay Estimation [ms]
+        t_oc = struct.unpack('<d',bytearray(data[106:106+8]))[0] # Time correction [ms]
+        a_f2 = struct.unpack('<f',bytearray(data[114:114+4]))[0] # Time correction [ms/ms^2]
+        a_f1 = struct.unpack('<f',bytearray(data[118:118+4]))[0] # Time correction [ms/ms^2]
+        a_f0 = struct.unpack('<f',bytearray(data[122:122+4]))[0] # Time correction [ms]
+        ura = struct.unpack('<H',bytearray(data[126:126+2]))[0] # User measurement accuracy
+        iode = struct.unpack('<H',bytearray(data[128:128+2]))[0] # An identifier of a setofephemerides
 
-    return {"System":sat_system, "PRN":prn, "C_rs":c_rs, "dn":dn, "M_0":m_0,
-            "C_uc":c_uc, "e":e,"C_us":c_us,"sqrtA":sqrtA, "t_oe":t_oe,
-            "C_ic":c_ic, "Omega_0":omega_0, "C_is":c_is, "I_0":i_0, 
-            "C_rc":c_rc, "w":w, "Omega_dot":omega_dot, "IDOT":idot,
-            "T_GD":t_gd, "t_oc":t_oc, "a_f2":a_f2, "a_f1":a_f1, 
-            "a_f0":a_f0}#, "URA":ura, "IODE":iode}
+        return {"System":sat_system, "PRN":prn, "C_rs":c_rs, "dn":dn, "M_0":m_0,
+                "C_uc":c_uc, "e":e,"C_us":c_us,"sqrtA":sqrtA, "t_oe":t_oe,
+                "C_ic":c_ic, "Omega_0":omega_0, "C_is":c_is, "I_0":i_0, 
+                "C_rc":c_rc, "w":w, "Omega_dot":omega_dot, "IDOT":idot,
+                "T_GD":t_gd, "t_oc":t_oc, "a_f2":a_f2, "a_f1":a_f1, 
+                "a_f0":a_f0, "URA":ura, "IODE":iode}
+    elif sat_system == GLONASS:
+        nA = struct.unpack('<B',bytearray(data[1:1+1]))[0] # On-board Number
+        HnA = struct.unpack('<b',bytearray(data[2:2+1]))[0] # Carrier frequency number
+        return {"System":sat_system, "n^A":nA, "H_n^A":HnA} 
+    

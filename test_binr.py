@@ -176,7 +176,7 @@ class Tests(unittest.TestCase):
         #TODO: specifying carrier for GPSs
 
     def test_process_sv_ephemeris(self):
-        # Given test data return results
+        # Given GPS test data return results
         data = b'\x01\x01\x00\x80\x0c\xc1\xc5\x7f\xa5,\xf2\xd2\x1f\xb7@\x84\xf9?\x00\x00\xc7\xb4\x00\x00\x00\xccw5\x80?\x00\xe0\xb96\x00\x00\x80\x91\xaa!\xb4@\x00\x00\x00\x00\xb6\xbd\xb3A\x00\x000\xb4\xf0\x00\xf5\xbc\x9b\xff\x08\xc0\x00\x00\x0c4\x9e\xef\xd4\x0b\x93\x19\xef?\x00|\x8cCfO\xf8\xbc\xda\x9d\xe4?\x8c\x1eW\x9dXM\xa2\xbd\r\x12\x87F\xb3$;=\x00\x80\xbb6\x00\x00\x00\x00\xb6\xbd\xb3A\x00\x00\x00\x00\x00\x00x\xac\x1f.n\xbd\x01\x006\x00'
         sv_ephemeris = binr.process_sv_ephemeris(data)
         self.assertEquals(sv_ephemeris["System"], binr.GPS)
@@ -201,3 +201,15 @@ class Tests(unittest.TestCase):
         self.assertEquals(sv_ephemeris["a_f2"], 0.0)
         self.assertEquals(sv_ephemeris["a_f1"], -3.524291969370097e-12)
         self.assertEquals(sv_ephemeris["a_f0"], -0.05814945325255394)
+        self.assertEquals(sv_ephemeris["URA"], 1)
+        self.assertEquals(sv_ephemeris["IODE"], 54)
+
+        # Given GPS test data return results
+        data = b'\x02\x16\xfd\x00\x00\x90\x12\xdf\xa3vA\x00\x00@\x9e\xcf\xa9a\xc1\x00\x00\x80\x1d\x11\xe1@A\x00\x00\x00\x00p\xb7\xca?\x00\x00\x00\x008\x9b\xd4\xbf\x00\x00\x00\x00\xec\x97\x0c\xc0\xfc\xa9\xf1\xd2Mb\x80=\xfa~j\xbct\x93\x88\xbd\xfc\xa9\xf1\xd2Mbp\xbd\x00\x00\x00\x00X\x08XA\x00\x00\x00\xacH=Y=\x00\x00'
+        sv_ephemeris = binr.process_sv_ephemeris(data)
+        self.assertEquals(sv_ephemeris["System"], binr.GLONASS)
+        self.assertEquals(sv_ephemeris["n^A"], 22)
+        self.assertEquals(sv_ephemeris["H_n^A"], -3)
+        self.assertEquals(sv_ephemeris["x_n"], -3) 
+
+        
