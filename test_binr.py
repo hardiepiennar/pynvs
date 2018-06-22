@@ -210,6 +210,19 @@ class Tests(unittest.TestCase):
         self.assertEquals(sv_ephemeris["System"], binr.GLONASS)
         self.assertEquals(sv_ephemeris["n^A"], 22)
         self.assertEquals(sv_ephemeris["H_n^A"], -3)
-        self.assertEquals(sv_ephemeris["x_n"], -3) 
-
+        self.assertEquals(sv_ephemeris["x_n"], 23739889.16015625) 
+        self.assertEquals(sv_ephemeris["y_n"], -9260668.9453125) 
+        self.assertEquals(sv_ephemeris["z_n"], 2212386.23046875) 
+        self.assertEquals(sv_ephemeris["x_nv"], 0.2087230682373047) 
+        self.assertEquals(sv_ephemeris["y_nv"], -0.3219738006591797) 
+        self.assertEquals(sv_ephemeris["z_nv"], -3.5741806030273438) 
+        self.assertEquals(sv_ephemeris["x_na"], 1.862645149230957e-12) 
+        self.assertEquals(sv_ephemeris["y_na"], -2.7939677238464356e-12) 
+        self.assertEquals(sv_ephemeris["z_na"], -9.313225746154785e-13) 
+        self.assertEquals(sv_ephemeris["t_b"], 6300000) 
+        self.assertEquals(sv_ephemeris["gamma_n"], -1.8189894035458565e-12)
+        self.assertEquals(sv_ephemeris["tau_n"], 0.05303695797920227) 
+        self.assertEquals(sv_ephemeris["Ë_n"], 0) 
+        
+        
         

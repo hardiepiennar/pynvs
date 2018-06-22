@@ -386,5 +386,24 @@ def process_sv_ephemeris(data):
     elif sat_system == GLONASS:
         nA = struct.unpack('<B',bytearray(data[1:1+1]))[0] # On-board Number
         HnA = struct.unpack('<b',bytearray(data[2:2+1]))[0] # Carrier frequency number
-        return {"System":sat_system, "n^A":nA, "H_n^A":HnA} 
+        xn = struct.unpack('<d',bytearray(data[3:3+8]))[0] # Coordinates [m]
+        yn = struct.unpack('<d',bytearray(data[11:11+8]))[0] # Coordinates [m]
+        zn = struct.unpack('<d',bytearray(data[19:19+8]))[0] # Coordinates [m]
+        xnv = struct.unpack('<d',bytearray(data[27:27+8]))[0] # Speed [m/ms]
+        ynv = struct.unpack('<d',bytearray(data[35:35+8]))[0] # Speed [m/ms]
+        znv = struct.unpack('<d',bytearray(data[43:43+8]))[0] # Speed [m/ms]
+        xna = struct.unpack('<d',bytearray(data[51:51+8]))[0] # acceleration [m/ms^2]
+        yna = struct.unpack('<d',bytearray(data[59:59+8]))[0] # acceleration [m/ms^2]
+        zna = struct.unpack('<d',bytearray(data[67:67+8]))[0] # acceleration [m/ms^2]
+        tb = struct.unpack('<d',bytearray(data[75:75+8]))[0] # Time interval inside the current day [msec]
+        gamma_n = struct.unpack('<f',bytearray(data[83:83+4]))[0] # Signal-carrier frequency value relative deviation
+        tau_n = struct.unpack('<f',bytearray(data[87:87+4]))[0] # Satellite time scale offset value in relation to the GLONASS scale [ms]
+        e_n = struct.unpack('<H',bytearray(data[91:91+2]))[0] # Satellite time scale offset value in relation to the GLONASS scale [ms]
+  
+        return {"System":sat_system, "n^A":nA, "H_n^A":HnA,
+                "x_n":xn, "y_n":yn, "z_n":zn, 
+                "x_nv":xnv, "y_nv":ynv, "z_nv":znv,
+                "x_na":xna, "y_na":yna, "z_na":zna,
+                "t_b":tb, "gamma_n":gamma_n, "tau_n":tau_n,
+                "Ë_n":e_n} 
     
