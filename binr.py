@@ -405,5 +405,104 @@ def process_sv_ephemeris(data):
                 "x_nv":xnv, "y_nv":ynv, "z_nv":znv,
                 "x_na":xna, "y_na":yna, "z_na":zna,
                 "t_b":tb, "gamma_n":gamma_n, "tau_n":tau_n,
-                "Ë_n":e_n} 
+                "Ë_n":e_n}
+                
+def request_raw_data(measurement_interval=10):
+    """
+    Request raw data output (message F5h) at a set interval
     
+    arguments:
+        measurement_interval - 100ms intervals between messages
+    
+    returns:
+        generated packet
+    """
+    if measurement_interval < 1:
+        raise ValueError("Measurement interval should be > 0")
+
+    # Create package
+    packet = [0x10, 0xF4, 
+              measurement_interval, 
+              0x10, 0x03]
+
+    return packet
+
+def process_raw_data(data):
+    """
+    Process the Raw data package F4h and return a dictionary 
+    object with the data.
+
+    arguments:
+        data - packet data
+
+    return:
+        dictionary with data fields described in BINR Protocol v1.3 
+        page 69.
+    """
+
+    # Main 28 bytes
+    tm = struct.unpack('<d',bytearray(data[0:0+8]))[0] # Time of measurements, UTC [ms]
+    week_num = struct.unpack('<H',bytearray(data[8:8+2]))[0] # Week number
+    gps_time_shift = struct.unpack('<d',bytearray(data[10:10+8]))[0] # GPS-UTC time shift [ms]
+    glo_time_shift = struct.unpack('<d',bytearray(data[18:18+8]))[0] # GLONASS-UTC time shift [ms]
+    rec_t_corr = struct.unpack('<b',bytearray(data[26:26+1]))[0] # Receiver Time Scale Correction [ms]
+
+    # 30*number of channels used
+    num_channels = int((len(data) - 28)/30)
+    # Create storage structures
+    signal_type = [] # 1-GLONASS, 2-GPS, 4-SBAS
+    sat_number = []
+    carrier_num = [] # for glonass
+    snr = [] # dB-Hz
+    carrier_phase = [] # cycles
+    pseudo_range = [] # ms
+    doppler_freq = [] # Hz
+    flags = []
+
+    # Process data
+    for i in range(num_channels):
+        offset = 27+i*30
+        signal_type.append(struct.unpack('<B',bytearray(data[offset+0:offset+0+1]))[0])
+        sat_number.append(struct.unpack('<B',bytearray(data[offset+1:offset+1+1]))[0])
+        carrier_num.append(struct.unpack('<B',bytearray(data[offset+2:offset+2+1]))[0])
+        snr.append(struct.unpack('<B',bytearray(data[offset+3:offset+3+1]))[0])
+        carrier_phase.append(struct.unpack('<d',bytearray(data[offset+4:offset+4+8]))[0])
+        pseudo_range.append(struct.unpack('<d',bytearray(data[offset+12:offset+12+8]))[0])
+        doppler_freq.append(struct.unpack('<d',bytearray(data[offset+20:offset+20+8]))[0])
+        flags.append(struct.unpack('<B',bytearray(data[offset+28:offset+28+1]))[0])
+         
+    return {"Time":tm, "Week Number": week_num, "GPS time shift": gps_time_shift, 
+            "GLO time shift": glo_time_shift, "Rec Time Scale Correction": rec_t_corr,
+            "Signal Type":signal_type, "Sat Number":sat_number,
+            "Carrier Number":carrier_num, "SNR":snr,
+            "Carrier Phase":carrier_phase, "Pseudo Range": pseudo_range,
+            "Doppler Freq":doppler_freq, "Flags":flags}
+
+def print_raw_data(raw_data):
+    """
+    Print the processed result of the status of receiver channel request.
+    """
+    print("Time: "+str(raw_data["Time"]))
+    print("Week: "+str(raw_data["Week Number"]))
+    print("GPS time shift: "+str(raw_data["GPS time shift"]))
+    print("GLO time shift: "+str(raw_data["GLO time shift"]))
+    print("Rec Time Scale Correction: "+str(raw_data["Rec Time Scale Correction"]))
+    num_channels = len(raw_data["Signal Type"])
+    print("Number of channels: "+str(num_channels))
+    print("---------------------------------------------------")
+    print("Ch\tSystem(ID)\tCarrier\tSNR\tPhase\t\tPseudorange\t\tDoppler\t\tFlags")
+    for i in range(num_channels):
+        if raw_data["Signal Type"][i] > 0:
+            if raw_data["Signal Type"][i] == 1:
+                system_name = "GLO"
+            elif raw_data["Signal Type"][i] == 2:
+                system_name = "GPS"
+            elif raw_data["Signal Type"][i] == 4:
+                system_name = "SBAS"     
+            else:
+                system_name = raw_data["Signal Type"][i]
+            fmt = "{:.5E}"
+            print(str(i)+"\t"+str(system_name)+"("+str(raw_data["Sat Number"][i])+")\t\t"+str(raw_data["Carrier Number"][i])+"\t"+
+                str(raw_data["SNR"][i])+"\t"+fmt.format(raw_data["Carrier Phase"][i])+"\t"+fmt.format(raw_data["Pseudo Range"][i])+"\t"+
+                str(raw_data["Doppler Freq"][i])+"\t"+str(raw_data["Flags"][i]))
+

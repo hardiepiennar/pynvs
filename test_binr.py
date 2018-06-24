@@ -136,13 +136,11 @@ class Tests(unittest.TestCase):
         with self.assertRaises(ValueError):
             binr.enable_sat(binr.GLONASS, 25, False)
 
-
     def test_request_status_of_receiver_channels(self):
         # Generate normal packet
         packet = binr.request_status_of_receiver_channels()
         self.assertEqual(packet,[0x10, 0x17, 0x10, 0x03])
 
-    
     def test_process_status_of_receiver_channels(self):
         # Given test data, return results
         data = b'\x02\xf9\x00\x00\x01\x02\x06\x00\x00\x01\x02\x05\x00\x00\x01\x02\x03\x00\x00\x01\x02\x02\x00\x00\x01\x02\x04\x00\x00\x01\x02\x00\x00\x00\x01\x02\x01\x00\x00\x01\x02\xff\x03\x00\x01\x02\xfc\x00\x00\x01\x02\xfe\x18\x00\x02\x02\xfd\x00\x00\x01\x02\xfb\x00\x00\x01\x02\xfa\x00\x00\x01\x01\n\x03\x00\x01\x01\x12\x10\x10\x00\x00\x01\x0c\x00\x00\x01\x01\x0b\x1d\x00\x00\x01\x0e\x00\x00\x01\x01\x0f\x00\x00\x01\x01\x13\x00\x00\x01\x01\x03\x1b\x00\x02\x01\x10\x10\x00\x00\x01\x01\x11\x00\x00\x01\x01\x14\x00\x00\x01\x01\x15\x00\x00\x01\x01\x16\x00\x00\x01\x01\x08\r\x00\x01\x01\t\x01\x00\x01\x01\r\x00\x00\x01\x05\xfa\x1e\x03\x01\x12\x00"\x03\x01'
@@ -157,7 +155,6 @@ class Tests(unittest.TestCase):
         self.assertEquals(receiver_status[5]["System"],2)
 
         # TODO: Check if packet contains multiple of 5 bytes
-
 
     def test_request_sv_ephemeris(self):
         # Generate packet
@@ -223,6 +220,19 @@ class Tests(unittest.TestCase):
         self.assertEquals(sv_ephemeris["gamma_n"], -1.8189894035458565e-12)
         self.assertEquals(sv_ephemeris["tau_n"], 0.05303695797920227) 
         self.assertEquals(sv_ephemeris["Ë_n"], 0) 
+
+    def test_request_raw_data(self):
+        # Generate packet
+        packet = binr.request_raw_data(20)
+        self.assertEquals(packet, [0x10, 0xF4, 0x14, 0x10, 0x03])
         
+        # Test bad packet
+        with self.assertRaises(ValueError):
+            binr.request_raw_data(-1)
+        with self.assertRaises(ValueError):
+            binr.request_raw_data(0)
+
+    def test_process_raw_data(self):
+        # Test data
         
         

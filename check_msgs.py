@@ -36,12 +36,20 @@ print("Requesting satellite ephemeris")
 ser.write(binr.request_sv_ephemeris(binr.GLONASS, 0,-3))
 buffer = ser.read(1000)
 data, buffer = binr.process_msg(buffer)
-print(data)
-print(len(data["data"]))
+
+print("Requesting raw data stream")
+ser.write(binr.request_raw_data())
 
 try:
     while True:
-
+        try:
+            buffer = ser.read(1000)
+            if len(buffer) > 0:
+                data, buffer = binr.process_msg(buffer)
+                raw_data = binr.process_raw_data(data["data"])
+                binr.print_raw_data(raw_data)
+        except ValueError:
+                print("Value error")
         time.sleep(0.1)
-except:
+except KeyboardInterrupt:
     ser.close() 
