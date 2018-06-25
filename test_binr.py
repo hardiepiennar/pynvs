@@ -14,7 +14,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(len(msg["data"]),1)
         self.assertEqual(msg["data"][0],0x01)
     
-        # # Create test message
+        ## Create test message
         raw_msg = bytearray([0x10,0x60,0x0B,0x09,0x3E,0x4E,
                               0x12,0x3F,0x11,0x39,0x60,0x3F,
                               0x10,0x03])
@@ -234,5 +234,11 @@ class Tests(unittest.TestCase):
 
     def test_process_raw_data(self):
         # Test data
+        raise NotImplementedError()
+
+    
+    def test_process_geocentric_coords_of_antenna(self):
+        # Test data
+        raise NotImplementedError()
         
         

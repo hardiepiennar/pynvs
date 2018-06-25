@@ -506,3 +506,28 @@ def print_raw_data(raw_data):
                 str(raw_data["SNR"][i])+"\t"+fmt.format(raw_data["Carrier Phase"][i])+"\t"+fmt.format(raw_data["Pseudo Range"][i])+"\t"+
                 str(raw_data["Doppler Freq"][i])+"\t"+str(raw_data["Flags"][i]))
 
+
+def process_geocentric_coordinates_of_antenna(data):
+    """
+    Process the geocentric coordinate packet. Sent every minute 
+    when request for raw data output has been activated.
+
+    arguments:
+        data - packet F6h data
+
+    return:
+        {X, Y, Z, X error, Y error, Z error, Flag}
+    """
+
+    # Extract data from packet
+    X = struct.unpack('<d',bytearray(data[0:0+8]))[0] # [m]
+    Y = struct.unpack('<d',bytearray(data[8:8+8]))[0] # [m]
+    Z = struct.unpack('<d',bytearray(data[16:16+8]))[0] # [m]
+    Xerror = struct.unpack('<d',bytearray(data[24:24+8]))[0] # [m] rms error
+    Yerror = struct.unpack('<d',bytearray(data[32:32+8]))[0] # [m] rms error
+    Zerror = struct.unpack('<d',bytearray(data[40:40+8]))[0] # [m] rms error
+    flag = struct.unpack('<B',bytearray(data[48:48+1]))[0] # Flag of user dynamic 0 - static, 1 - kinematic
+
+    return {"X":X, "Y":Y, "Z":Z, 
+            "X error":Xerror, "Y error":Yerror, "Z error":Zerror, 
+            "Flag": flag}
