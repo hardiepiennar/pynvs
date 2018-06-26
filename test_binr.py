@@ -237,8 +237,23 @@ class Tests(unittest.TestCase):
         raise NotImplementedError()
 
     
-    def test_process_geocentric_coords_of_antenna(self):
+    def test_process_software_version(self):
+        # Test data
+        raise NotImplementedError()
+
+    def test_process_ionosphere_parameters(self):
+        # Test data
+        raise NotImplementedError()
+
+    def test_process_time_scales_parameters(self):
+        # Test data
+        raise NotImplementedError()
+
+    def test_process_geocentric_coordinates_of_antenna(self):
         # Test data
         raise NotImplementedError()
         
         
+    def test_process_extended_ephemeris_of_satellites(self):
+        # Test data
+        raise NotImplementedError()

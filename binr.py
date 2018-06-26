@@ -531,3 +531,116 @@ def process_geocentric_coordinates_of_antenna(data):
     return {"X":X, "Y":Y, "Z":Z, 
             "X error":Xerror, "Y error":Yerror, "Z error":Zerror, 
             "Flag": flag}
+
+
+def process_software_version(data):
+    """
+    Process the software version packet. Sent a single time after a
+    raw data request.
+
+    arguments:
+        data - packet 1Bh data
+    
+    return:
+        {"No of Channels", "Version", "Serial Number"}
+    """
+    no_of_channels = struct.unpack('<B',bytearray(data[0:0+1]))[0]
+    #TODO: resolve this correctly 21 byte long string
+    version = struct.unpack('<B',bytearray(data[1:1+1]))[0]
+    serial = struct.unpack('<f',bytearray(data[22:22+4]))[0]
+
+    return {"No of Channels":no_of_channels, "Version": version,
+            "Serial Number": serial}
+
+
+def process_ionosphere_parameters(data):
+    """
+    Process the ionosphere parameters from packet 2Ah. Sent every 
+    2 minutes after a raw data request.
+
+    arguments:
+        data - packet 4Ah
+
+    return:
+        {"alpha_0", "alpha_1", "alpha_2", "alpha_3",
+         "beta_0", "beta_1", "beta_2", "beta_3", "Reliability"}
+    """
+
+    a0 = struct.unpack('<f',bytearray(data[0:0+4]))[0] # sec
+    a1 = struct.unpack('<f',bytearray(data[4:4+4]))[0] # sec/semicycle
+    a2 = struct.unpack('<f',bytearray(data[8:8+4]))[0] # sec/(semicycle)^2
+    a3 = struct.unpack('<f',bytearray(data[12:12+4]))[0] # sec/(semicycle)^3
+
+    b0 = struct.unpack('<f',bytearray(data[16:16+4]))[0] # sec
+    b1 = struct.unpack('<f',bytearray(data[20:20+4]))[0] # sec/semicycle
+    b2 = struct.unpack('<f',bytearray(data[24:24+4]))[0] # sec/(semicycle)^2
+    b3 = struct.unpack('<f',bytearray(data[28:28+4]))[0]  # sec/(semicycle)^3
+
+    reliability = struct.unpack('<B',bytearray(data[32:32+1]))[0] # 255 - data is reliable
+
+    return {"alpha_0":a0, "alpha_1":a1, "alpha_2":a2, "alpha_3":a3,
+            "beta_0":b0, "beta_1":b1, "beta_2":b2, "beta_3":b3, 
+            "Reliability":reliability}
+
+def process_time_scales_parameters(data):
+    """
+    Process the data received in packet 4Bh relating to 
+    GPS, GLONASS and UTC time scales parameters. Sent every
+    2 minutes after a data request.
+
+    argurments:
+        data - data from 4Bh packet
+
+    return:
+        {"A_1", "A_0", "t_ot","WN_t", "dt_LS", "WN_LSF", "DN", "dt_LSF",
+         "GPS Reliability", "N^A", "tau_c", "GLONASS Reliability"}
+    """
+
+    A1 = struct.unpack('<d',bytearray(data[0:0+8]))[0]  # Sec/sec
+    A0 = struct.unpack('<d',bytearray(data[8:8+8]))[0]  # Sec
+    t_ot = struct.unpack('<f',bytearray(data[16:16+4]))[0]  # Sec
+    WN_t = struct.unpack('<H',bytearray(data[20:20+2]))[0]  # Weeks
+    dt_LS = struct.unpack('<h',bytearray(data[22:22+2]))[0]  # Sec
+    WN_LSF = struct.unpack('<H',bytearray(data[24:24+2]))[0]  # Weeks
+    DN = struct.unpack('<H',bytearray(data[26:26+2]))[0]  # Days
+    dt_LSF = struct.unpack('<h',bytearray(data[28:28+2]))[0]  # Sec
+    gps_rel = struct.unpack('<B',bytearray(data[30:30+1]))[0] # 255 - data is reliable
+    # Number of the day to which the tau_c time stamp refers
+    NA = struct.unpack('<H',bytearray(data[31:31+2]))[0]  
+    tau_c = struct.unpack('<d',bytearray(data[33:33+8]))[0]  # Sec
+    glo_rel = struct.unpack('<B',bytearray(data[41:41+1]))[0] # 255 - data is reliable
+    
+    return  {"A_1":A1, "A_0":A0, "t_ot":t_ot,"WN_t":WN_t, "dt_LS":dt_LS, 
+             "WN_LSF":WN_LSF, "DN":DN, "dt_LSF":dt_LSF,
+             "GPS Reliability":gps_rel, "N^A":NA, "tau_c":tau_c, 
+             "GLONASS Reliability":glo_rel}
+
+def process_extended_ephemeris_of_satellites(data):
+    """
+    Process the extended ephemeris packet F4h sent at the same interval
+    as the raw data.
+
+    arguments:
+        data - data from F4h packet
+
+    return:
+        dictionary containing data listed on page 71 of the V1.3 BINR 
+        protocol specification.
+    """
+
+    # Get the system
+    system = struct.unpack('<B',bytearray(data[0:0+1]))[0] # 1 - GPS, 2 - GLONASS
+    sat_no = struct.unpack('<B',bytearray(data[1:1+1]))[0] 
+
+    if system == GPS: # Process the next 93 bytes
+        Crs = struct.unpack('<f',bytearray(data[2:2+4]))[0]  # m
+        Dn = struct.unpack('<f',bytearray(data[6:6+4]))[0]  # rad/ms
+        M0 = struct.unpack('<d',bytearray(data[10:10+8]))[0]  # rad
+        Cuc = struct.unpack('<f',bytearray(data[18:18+4]))[0]  # rad
+        e = struct.unpack('<d',bytearray(data[22:22+8]))[0]  # E
+        raise NotImplementedError()
+
+        
+        
+
+ 
