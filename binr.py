@@ -405,7 +405,7 @@ def process_sv_ephemeris(data):
                 "x_nv":xnv, "y_nv":ynv, "z_nv":znv,
                 "x_na":xna, "y_na":yna, "z_na":zna,
                 "t_b":tb, "gamma_n":gamma_n, "tau_n":tau_n,
-                "Ë_n":e_n}
+                "E_n":e_n}
                 
 def request_raw_data(measurement_interval=10):
     """
@@ -629,16 +629,75 @@ def process_extended_ephemeris_of_satellites(data):
     """
 
     # Get the system
-    system = struct.unpack('<B',bytearray(data[0:0+1]))[0] # 1 - GPS, 2 - GLONASS
+    sat_system = struct.unpack('<B',bytearray(data[0:0+1]))[0] # 1 - GPS, 2 - GLONASS
     sat_no = struct.unpack('<B',bytearray(data[1:1+1]))[0] 
 
-    if system == GPS: # Process the next 93 bytes
-        Crs = struct.unpack('<f',bytearray(data[2:2+4]))[0]  # m
-        Dn = struct.unpack('<f',bytearray(data[6:6+4]))[0]  # rad/ms
-        M0 = struct.unpack('<d',bytearray(data[10:10+8]))[0]  # rad
-        Cuc = struct.unpack('<f',bytearray(data[18:18+4]))[0]  # rad
+    if sat_system == GPS: # Process the next 136 bytes
+        c_rs = struct.unpack('<f',bytearray(data[2:2+4]))[0]  # m
+        dn = struct.unpack('<f',bytearray(data[6:6+4]))[0]  # rad/ms
+        m_0 = struct.unpack('<d',bytearray(data[10:10+8]))[0]  # rad
+        c_uc = struct.unpack('<f',bytearray(data[18:18+4]))[0]  # rad
         e = struct.unpack('<d',bytearray(data[22:22+8]))[0]  # E
-        raise NotImplementedError()
+        c_us = struct.unpack('<f',bytearray(data[30:30+4]))[0]  # rad
+        sqrtA = struct.unpack('<d',bytearray(data[34:34+8]))[0]  # m^1/2
+        t_oe = struct.unpack('<d',bytearray(data[42:42+8]))[0]  # ms
+        c_ic = struct.unpack('<f',bytearray(data[50:50+4]))[0]  # rad
+        omega_0 = struct.unpack('<d',bytearray(data[54:54+8]))[0]  # rad
+        c_is = struct.unpack('<f',bytearray(data[62:62+4]))[0]  # rad
+        i_0 = struct.unpack('<d',bytearray(data[66:66+8]))[0]  # rad
+        c_rc = struct.unpack('<f',bytearray(data[74:74+4]))[0]  # rad
+        w = struct.unpack('<d',bytearray(data[78:78+8]))[0]  # rad
+        omega_dot = struct.unpack('<d',bytearray(data[86:86+8]))[0]  # ms
+        idot = struct.unpack('<d',bytearray(data[94:94+8]))[0]  # rad/ms
+        t_gd = struct.unpack('<f',bytearray(data[102:102+4]))[0]  # ms
+        t_oc = struct.unpack('<d',bytearray(data[106:106+8]))[0]  # ms
+        a_f2 = struct.unpack('<f',bytearray(data[114:114+4]))[0]  # ms/ms^2
+        a_f1 = struct.unpack('<f',bytearray(data[118:118+4]))[0]  # ms/ms
+        a_f0 = struct.unpack('<f',bytearray(data[122:122+4]))[0]  # ms
+        ura = struct.unpack('<H',bytearray(data[126:126+2]))[0]  
+        iode = struct.unpack('<H',bytearray(data[128:128+2]))[0]  
+        iodc = struct.unpack('<H',bytearray(data[130:130+2]))[0]
+        codel2 = struct.unpack('<H',bytearray(data[132:132+2]))[0]  
+        l2_pdata_flag = struct.unpack('<H',bytearray(data[134:134+2]))[0]  
+        weekN = struct.unpack('<H',bytearray(data[136:136+2]))[0]
+
+        return {"System":sat_system, "PRN":sat_no, "C_rs":c_rs, "dn":dn, "M_0":m_0,
+                "C_uc":c_uc, "e":e,"C_us":c_us,"sqrtA":sqrtA, "t_oe":t_oe,
+                "C_ic":c_ic, "Omega_0":omega_0, "C_is":c_is, "I_0":i_0, 
+                "C_rc":c_rc, "w":w, "Omega_dot":omega_dot, "IDOT":idot,
+                "T_GD":t_gd, "t_oc":t_oc, "a_f2":a_f2, "a_f1":a_f1, 
+                "a_f0":a_f0, "URA":ura, "IODE":iode, "IODC":iodc, 
+                "CODEL2":codel2, "L2 P Data Flag":l2_pdata_flag, "WN":weekN}
+
+    elif sat_system == GLONASS: # 92 bytes
+        HnA = struct.unpack('<b',bytearray(data[2:2+1]))[0] # Carrier frequency number
+        xn = struct.unpack('<d',bytearray(data[3:3+8]))[0] # Coordinates [m]
+        yn = struct.unpack('<d',bytearray(data[11:11+8]))[0] # Coordinates [m]
+        zn = struct.unpack('<d',bytearray(data[19:19+8]))[0] # Coordinates [m]
+        xnv = struct.unpack('<d',bytearray(data[27:27+8]))[0] # Speed [m/ms]
+        ynv = struct.unpack('<d',bytearray(data[35:35+8]))[0] # Speed [m/ms]
+        znv = struct.unpack('<d',bytearray(data[43:43+8]))[0] # Speed [m/ms]
+        xna = struct.unpack('<d',bytearray(data[51:51+8]))[0] # acceleration [m/ms^2]
+        yna = struct.unpack('<d',bytearray(data[59:59+8]))[0] # acceleration [m/ms^2]
+        zna = struct.unpack('<d',bytearray(data[67:67+8]))[0] # acceleration [m/ms^2]
+        tb = struct.unpack('<d',bytearray(data[75:75+8]))[0] # Time interval inside the current day [msec]
+        gamma_n = struct.unpack('<f',bytearray(data[83:83+4]))[0] # Signal-carrier frequency value relative deviation
+        tau_n = struct.unpack('<f',bytearray(data[87:87+4]))[0] # Satellite time scale offset value in relation to the GLONASS scale [ms]
+        e_n = struct.unpack('<H',bytearray(data[91:91+2]))[0] # Satellite time scale offset value in relation to the GLONASS scale [ms]
+
+        return {"System":sat_system, "Sat No":sat_no, "n^A":nA, "H_n^A":HnA,
+                "x_n":xn, "y_n":yn, "z_n":zn, 
+                "x_nv":xnv, "y_nv":ynv, "z_nv":znv,
+                "x_na":xna, "y_na":yna, "z_na":zna,
+                "t_b":tb, "gamma_n":gamma_n, "tau_n":tau_n,
+                "E_n":e_n}
+                
+    else:
+        raise ValueError("Invalid system byte")    
+        
+        
+        
+        
 
         
         
