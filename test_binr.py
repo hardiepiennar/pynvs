@@ -234,26 +234,67 @@ class Tests(unittest.TestCase):
 
     def test_process_raw_data(self):
         # Test data
-        raise NotImplementedError()
+        data = b'qE\xad\x00\r\xee\xb3A\xd7\x03k_\xbd\x00\x00\x94\xd1@\x00\x00\x00\x00p\x99dA\x00\x02\x1f\x1f$\x00\xb8\x88\xf1\x87Y\xe2@\x00H\xe5\xfdN\xcdS@\x00\x000\xe9c[\x8d\xc0{\x00\x02\t\t0\x00\xfaD7@w\x01\xc1\x00H\xe5\x91\x07iR@\x00\x00XG\x80\xfc\xaa@;\x00\x01\x1a\xfb$R\xa8R&\xaa\\\xd4@\x00P\x9aeFHP@\x00\x00\xc0\x86pZ\x81\xc0;\x00\x01\x13\x03*\x932\xfd\xfcO\x9a\x03A\x00\xd0\xb5q\x97kR@\x00\x00,\x1e7F\xaf\xc0{\x00\x01\x06\xfc"\xc5(XY\x8e\xc5\x02\xc1\x00\x80\x1a\xc3\xed\xa1S@\x00\x00pMD\xc5\xaf@{\x00\x02\x03\x03#\x00p\xaf\x8d\x9b\xac\xe8@\x00H\xa5\xdc\xa4GQ@\x00\x00\x98{\x0e.\x94\xc0;\x00\x02\x17\x170\x00\xc0\x16a\xd5\xcb\xea\xc0\x00H%\xa5V}Q@\x00\x00\x00-\x9b\x12\x96@{\x00\x02\x06\x06%\x00t\xa0M\xc1r\xfa\xc0\x00H\xe5\xc7\x95MR@\x00\x00\x80\xf88#\xa7@;\x00\x02\x01\x01/\x00\xac\xf5*\xa4\xce\xfc@\x00H\xe5FeXS@\x00\x00\x8c\xfb\n\xa5\xa8\xc0{\x00\x02\x0c\x0c-\x00\xe0\xb3>zw\xe3@\x00H\xa5\x12U\xd1T@\x00\x000\xff\xf6(\x8f\xc0{\x00\x02\x11\x11*\x00\xd8\xdaX\xe9A\xec@\x00H\xa5\xbe\xdd\x7fR@\x00\x00h[\xa4\x12\x97\xc0{\x00'
 
+        # Process data
+        raw = binr.process_raw_data(data)
+
+        # Check raw data response
+        self.assertEquals(raw["Time"],334368000.67684084)
+        self.assertEquals(raw["Week Number"],983)
+        self.assertEquals(raw["GPS time shift"],18000.000045149976 )
+        self.assertEquals(raw["GLO time shift"],10800000.0 )
+        self.assertEquals(raw["Rec Time Scale Correction"],0 )
+        self.assertEquals(len(raw["Signal Type"]),10)
+        self.assertEquals(raw["Signal Type"][0],2)
+        self.assertEquals(raw["Sat Number"][0],31)
+        self.assertEquals(raw["Carrier Number"][0],31)
+        self.assertEquals(raw["Carrier Phase"][0],37580.24823413789)
+        self.assertEquals(raw["Pseudo Range"][0],79.20794627562282)
+        self.assertEquals(raw["Doppler Freq"][0],-939.4237846136093)
+        self.assertEquals(raw["Flags"][0],123)
+        self.assertEquals(raw["Sat Number"][2],26)
     
     def test_process_software_version(self):
         # Test data
-        raise NotImplementedError()
+        data = b' CSM54 05.04 18/10/16\x00\xbc\x8f\xec\x1cNV08C 07.03 30/03/12\x00\xbc\x8f\xec\x1c                    \x00\x00\x00\x00\x00'
+
+        # Process software version data
+        version = binr.process_software_version(data)
+
+        # Check data
+        self.assertEquals(version["No of Channels"], 32)
+        #self.assertEquals(version["Version"], 32) # TODO: implement if you want
+        self.assertEquals(version["Serial Number"], 485265340)
 
     def test_process_ionosphere_parameters(self):
         # Test data
+        data = b'\x00\x00\xa01\x00\x00\x802\x00\x00\x80\xb3\x00\x00\x00\xb4\x00\x00\xa0G\x00\x00\xc0G\x00\x00\x80\xc7\x00\x00\x00\xc9\xff'
         raise NotImplementedError()
 
     def test_process_time_scales_parameters(self):
         # Test data
+        data = b'\x00\x00\x00\x00\x00\x00\xf8<\x00\x00\x00\x00\x00\x00(>\x00\xb0\x07\x00\xd7\x00\x12\x00\x89\x00\x07\x00\x12\x00\xff\x8d\x03\x00\x00\x00\x00\x00\x00 >\xff'
         raise NotImplementedError()
 
     def test_process_geocentric_coordinates_of_antenna(self):
         # Test data
-        raise NotImplementedError()
-        
-        
+        data = b'\xebaFF\x0f\xe0MA\xdf\x10\x10\xb3\t\xb4\x1e\xb7@Gi\xb8a5$SA\x00\x00\x00`\x9d\xde\x1a@\x00\x00\x00\xc0jd\x13@\x00\x00\x00 \xbe=\x1c@\x00'
+
+        # Process antenna
+        geo_coords = binr.process_geocentric_coordinates_of_antenna(data)
+
+        # Check returned values
+        self.assertEquals(geo_coords["X"],3915806.549022903)
+        self.assertEquals(geo_coords["Y"],-3.4419559446041095e-43) # TODO: something looks wrong here
+        self.assertEquals(geo_coords["Z"],3.2932389635128064e+92)
+        self.assertEquals(geo_coords["X error"],2.9511633910563842e-179)
+        self.assertEquals(geo_coords["Y error"],2.9613168073097877e-215)
+        self.assertEquals(geo_coords["Z error"],1.2025483161027633e-172)
+        self.assertEquals(geo_coords["Flag"],64)
+
+      
     def test_process_extended_ephemeris_of_satellites(self):
         # Test data
+        data = b'\x01\x01\x00\x80\xd8\xc2\xfa>\x8d,\xc5cl\xe1l!\x07@\x00\xe0\xbc\xb6\x00\x00\x00\x98\x9a?\x80?\x00\xf0:7\x00\x00\xe0+\xad!\xb4@\x00\x00\x00\x00\x93+\xb4A'
         raise NotImplementedError()

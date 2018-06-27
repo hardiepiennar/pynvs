@@ -50,7 +50,8 @@ def process_msg(buffer):
         raise ValueError("Buffer did not contain message")
 
     # Grab the message id and data segments
-    message_id = int(msg[1])
+    message_id = struct.unpack('<B',bytearray(msg[1:1+1]))[0] # Flag of user dynamic 0 - static, 1 - kinematic
+
     data = msg[2:-2]
 
     # Return the message and rest of the buffer
@@ -460,8 +461,9 @@ def process_raw_data(data):
     flags = []
 
     # Process data
-    for i in range(num_channels):
-        offset = 27+i*30
+    for i in range(0,num_channels):
+        offset = 28+i*30
+        # TODO: Something is funny here, channel 0 first few parameters corrupted
         signal_type.append(struct.unpack('<B',bytearray(data[offset+0:offset+0+1]))[0])
         sat_number.append(struct.unpack('<B',bytearray(data[offset+1:offset+1+1]))[0])
         carrier_num.append(struct.unpack('<B',bytearray(data[offset+2:offset+2+1]))[0])
@@ -493,19 +495,25 @@ def print_raw_data(raw_data):
     print("Ch\tSystem(ID)\tCarrier\tSNR\tPhase\t\tPseudorange\t\tDoppler\t\tFlags")
     for i in range(num_channels):
         if raw_data["Signal Type"][i] > 0:
+            skip = False
             if raw_data["Signal Type"][i] == 1:
                 system_name = "GLO"
             elif raw_data["Signal Type"][i] == 2:
                 system_name = "GPS"
             elif raw_data["Signal Type"][i] == 4:
-                system_name = "SBAS"     
+                system_name = "SBA"     
             else:
                 system_name = raw_data["Signal Type"][i]
-            fmt = "{:.5E}"
-            print(str(i)+"\t"+str(system_name)+"("+str(raw_data["Sat Number"][i])+")\t\t"+str(raw_data["Carrier Number"][i])+"\t"+
-                str(raw_data["SNR"][i])+"\t"+fmt.format(raw_data["Carrier Phase"][i])+"\t"+fmt.format(raw_data["Pseudo Range"][i])+"\t"+
-                str(raw_data["Doppler Freq"][i])+"\t"+str(raw_data["Flags"][i]))
-
+                skip = True
+            if skip:
+                print("---")
+            else:
+                fmt = "{:.5E}"
+                print(str(i)+"\t"+str(system_name)+"("+str(raw_data["Sat Number"][i])+")\t\t"+str(raw_data["Carrier Number"][i])+"\t"+
+                    str(raw_data["SNR"][i])+"\t"+fmt.format(raw_data["Carrier Phase"][i])+"\t"+fmt.format(raw_data["Pseudo Range"][i])+"\t"+
+                    str(raw_data["Doppler Freq"][i])+"\t"+str(raw_data["Flags"][i]))
+        else:
+            print("---")
 
 def process_geocentric_coordinates_of_antenna(data):
     """
@@ -547,7 +555,7 @@ def process_software_version(data):
     no_of_channels = struct.unpack('<B',bytearray(data[0:0+1]))[0]
     #TODO: resolve this correctly 21 byte long string
     version = struct.unpack('<B',bytearray(data[1:1+1]))[0]
-    serial = struct.unpack('<f',bytearray(data[22:22+4]))[0]
+    serial = struct.unpack('<I',bytearray(data[22:22+4]))[0]
 
     return {"No of Channels":no_of_channels, "Version": version,
             "Serial Number": serial}
@@ -685,13 +693,13 @@ def process_extended_ephemeris_of_satellites(data):
         tau_n = struct.unpack('<f',bytearray(data[87:87+4]))[0] # Satellite time scale offset value in relation to the GLONASS scale [ms]
         e_n = struct.unpack('<H',bytearray(data[91:91+2]))[0] # Satellite time scale offset value in relation to the GLONASS scale [ms]
 
-        return {"System":sat_system, "Sat No":sat_no, "n^A":nA, "H_n^A":HnA,
+        return {"System":sat_system, "Sat No":sat_no, "H_n^A":HnA,
                 "x_n":xn, "y_n":yn, "z_n":zn, 
                 "x_nv":xnv, "y_nv":ynv, "z_nv":znv,
                 "x_na":xna, "y_na":yna, "z_na":zna,
                 "t_b":tb, "gamma_n":gamma_n, "tau_n":tau_n,
                 "E_n":e_n}
-                
+
     else:
         raise ValueError("Invalid system byte")    
         

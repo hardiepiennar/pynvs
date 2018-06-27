@@ -22,10 +22,10 @@ ser.close()
 
 # Connect to device
 print("Connecting to serial port [BINR 115200]")
-ser = serial.Serial(port, 115200, parity=serial.PARITY_ODD, timeout=0.2)
+ser = serial.Serial(port, 115200, parity=serial.PARITY_ODD, timeout=0.1)
 
 # Request current receiver channels status
-print("Requesting receiver channels status")
+""" print("Requesting receiver channels status")
 ser.write(binr.request_status_of_receiver_channels())
 buffer = ser.read(1000)
 data, buffer = binr.process_msg(buffer)
@@ -35,21 +35,25 @@ binr.print_status_of_receiver_channels(channel_status)
 print("Requesting satellite ephemeris")
 ser.write(binr.request_sv_ephemeris(binr.GLONASS, 0,-3))
 buffer = ser.read(1000)
-data, buffer = binr.process_msg(buffer)
+data, buffer = binr.process_msg(buffer) """
 
 print("Requesting raw data stream")
-ser.write(binr.request_raw_data())
-
+ser.write(binr.request_raw_data(30))
+buffer = []
 try:
     while True:
         try:
-            buffer = ser.read(1000)
+            buffer = buffer + list(ser.read(1000))
             if len(buffer) > 0:
                 data, buffer = binr.process_msg(buffer)
-                raw_data = binr.process_raw_data(data["data"])
-                binr.print_raw_data(raw_data)
+                #print("Msg: "+str(hex(data["ID"]))+": "+
+                #      str(len(data["data"]))+" bytes : "+
+                #      str(bytearray(data["data"][0:50])))
+                if data["ID"] == 0xF5:
+                    raw_data = binr.process_raw_data(data["data"])
+                    binr.print_raw_data(raw_data)
         except ValueError:
-                print("Value error")
+                s = 1
         time.sleep(0.1)
 except KeyboardInterrupt:
     ser.close() 
