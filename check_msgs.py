@@ -38,7 +38,7 @@ buffer = ser.read(1000)
 data, buffer = binr.process_msg(buffer) """
 
 print("Requesting raw data stream")
-ser.write(binr.request_raw_data(30))
+ser.write(binr.request_raw_data())
 buffer = []
 try:
     while True:
@@ -46,9 +46,9 @@ try:
             buffer = buffer + list(ser.read(1000))
             if len(buffer) > 0:
                 data, buffer = binr.process_msg(buffer)
-                #print("Msg: "+str(hex(data["ID"]))+": "+
-                #      str(len(data["data"]))+" bytes : "+
-                #      str(bytearray(data["data"][0:50])))
+                print("Msg: "+str(hex(data["ID"]))+": "+
+                      str(len(data["data"]))+" bytes : "+
+                      str(bytearray(data["data"][0:50])))
                 if data["ID"] == 0xF5:
                     raw_data = binr.process_raw_data(data["data"])
                     binr.print_raw_data(raw_data)

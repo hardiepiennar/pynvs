@@ -275,7 +275,23 @@ class Tests(unittest.TestCase):
     def test_process_time_scales_parameters(self):
         # Test data
         data = b'\x00\x00\x00\x00\x00\x00\xf8<\x00\x00\x00\x00\x00\x00(>\x00\xb0\x07\x00\xd7\x00\x12\x00\x89\x00\x07\x00\x12\x00\xff\x8d\x03\x00\x00\x00\x00\x00\x00 >\xff'
-        raise NotImplementedError()
+
+        # Process packet
+        param = binr.process_time_scales_parameters(data)
+
+        # Check data
+        self.assertEquals(param["A_1"],5.329070518200751e-15)
+        self.assertEquals(param["A_0"],2.7939677238464355e-09)
+        self.assertEquals(param["t_ot"],7.059853767145574e-40)
+        self.assertEquals(param["WN_t"],215)
+        self.assertEquals(param["dt_LS"],18)
+        self.assertEquals(param["WN_LSF"],137)
+        self.assertEquals(param["DN"],7)
+        self.assertEquals(param["dt_LSF"],18)
+        self.assertEquals(param["GPS Reliability"],255)
+        self.assertEquals(param["N^A"],909)
+        self.assertEquals(param["tau_c"],1.862645149230957e-09)
+        self.assertEquals(param["GLONASS Reliability"],255)
 
     def test_process_geocentric_coordinates_of_antenna(self):
         # Test data
@@ -297,4 +313,11 @@ class Tests(unittest.TestCase):
     def test_process_extended_ephemeris_of_satellites(self):
         # Test data
         data = b'\x01\x01\x00\x80\xd8\xc2\xfa>\x8d,\xc5cl\xe1l!\x07@\x00\xe0\xbc\xb6\x00\x00\x00\x98\x9a?\x80?\x00\xf0:7\x00\x00\xe0+\xad!\xb4@\x00\x00\x00\x00\x93+\xb4A'
-        raise NotImplementedError()
+        
+        # Process packet
+        ext_ephemeris = binr.process_extended_ephemeris_of_satellites(data)
+
+        # Check that data is correct
+        self.assertEquals(ext_ephemeris["System"], 0)
+        # TODO: we need a valid dataset here
+        # TODO: we need to check our msg lengths when processing

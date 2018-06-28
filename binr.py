@@ -8,6 +8,7 @@ June 2018
 
 import struct
 
+# Global variables
 WGS84 = 0
 PZ90 = 1
 SK42 = 2
@@ -15,6 +16,7 @@ SK95 = 3
 PZ90_2 = 4
 GPS = 1
 GLONASS = 2
+
 
 def process_msg(buffer):
     """
@@ -32,7 +34,6 @@ def process_msg(buffer):
     raises:
         ValueError - If no message could be found
     """
-
     # Check that message has valid start and stop bytes
     # and grab the message string from the buffer
     try:
