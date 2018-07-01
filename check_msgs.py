@@ -38,7 +38,7 @@ buffer = ser.read(1000)
 data, buffer = binr.process_msg(buffer) """
 
 print("Requesting raw data stream")
-ser.write(binr.request_raw_data())
+ser.write(binr.request_raw_data(50))
 buffer = []
 try:
     while True:

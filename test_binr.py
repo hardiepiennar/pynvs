@@ -33,6 +33,13 @@ class Tests(unittest.TestCase):
         # Process bad message
         with self.assertRaises(ValueError):
             binr.process_msg(raw_msg)
+
+        # Process message where last character is not yet sent
+        raw_msg = bytearray([0x10,0x21,0x01,0x10])
+
+        # Process message
+        with self.assertRaises(ValueError):
+            binr.process_msg(raw_msg)
     
     def test_process_msg_in_buffer(self):
         # Create msg contained in buffer

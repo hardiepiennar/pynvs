@@ -42,7 +42,7 @@ def process_msg(buffer):
         stop_id_offset = 0
         while searching:
             stop_id = buffer[start_id+1+stop_id_offset:].index(0x10)+start_id+1+stop_id_offset
-            if buffer[stop_id + 1]== 0x03:
+            if len(buffer) >= stop_id + 2 and buffer[stop_id + 1]== 0x03:
                 searching = False
             else:
                 stop_id_offset = stop_id+1
@@ -592,6 +592,7 @@ def process_ionosphere_parameters(data):
             "Reliability":reliability}
 
 def process_time_scales_parameters(data):
+    
     """
     Process the data received in packet 4Bh relating to 
     GPS, GLONASS and UTC time scales parameters. Sent every
