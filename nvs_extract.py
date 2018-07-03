@@ -22,11 +22,20 @@ reader = open("pelham_shed_1_July_2018.dat",'rb')
 # indexes GPS: 0-31 for GPS or 32-55 for GLONASS
 timesteps = 1325
 step = 0
-columns = list(["Time", "Signal Type", "Sat Number", "SNR", "Phase", 
-                "Pseudorange","Doppler", "Signal Present",
-                "Pseudorange and Doppler Present","Pseudorange Smoothed", 
-                "Phase Present", "Signal Time Available","Preamble Not Detected"])
-df = pd.DataFrame(columns=columns)
+# Create dataframes
+col_ext_ephemeris = list(["PRN", "C_rs", "dn", "M_0", 
+                        "C_uc", "e","C_us","sqrtA", "t_oe",
+                        "C_ic", "Omega_0", "C_is", "I_0", 
+                        "C_rc", "w", "Omega_dot", "IDOT",
+                        "T_GD", "t_oc", "a_f2", "a_f1", 
+                        "a_f0", "URA", "IODE", "IODC", 
+                        "CODEL2", "L2 P Data Flag", "WN"])
+df_ext_ephemeris = pd.DataFrame(columns=col_ext_ephemeris)
+col_raw_data = list(["Time", "GPS time shift", "Signal Type", "Sat Number", "SNR", "Phase", 
+                    "Pseudorange","Doppler", "Signal Present",
+                    "Pseudorange and Doppler Present","Pseudorange Smoothed", 
+                    "Phase Present", "Signal Time Available","Preamble Not Detected"])
+df_raw_data = pd.DataFrame(columns=col_raw_data)
 
 # Count messages
 buffer = []
@@ -56,6 +65,7 @@ try:
             # If we received raw data, save it
             if data["ID"]== 0xF5:
                 print("Processing raw data")
+
                 # Process the message
                 raw_data = binr.process_raw_data(data["data"])
                 # Get the number of channels
@@ -71,6 +81,7 @@ try:
                         time_available = 0b00010000&raw_data["Flags"][i] > 0
                         preamble_not_detected = 0b00100000&raw_data["Flags"][i] > 0
                         dataset = [[raw_data["Time"], 
+                                raw_data["GPS time shift"], 
                                 raw_data["Signal Type"][i],
                                 raw_data["Sat Number"][i],
                                 raw_data["SNR"][i],
@@ -83,16 +94,52 @@ try:
                                 carrier_present,
                                 time_available,
                                 preamble_not_detected]]
-                        df_step = pd.DataFrame(dataset, columns=columns)   
-                        df = df.append(df_step)
+                        df_step = pd.DataFrame(dataset, columns=col_raw_data)   
+                        df_raw_data = df_raw_data.append(df_step)
             if data["ID"]== 0xF7:
                 print("Processing extended ephemeres data")
-                # TODO: Read ephemeris into a dataframe
-                # TODO: Calculate and plot satellite positions
-                # TODO: Calculate own position
+                # Process the message
+                ext_ephemeris = binr.process_extended_ephemeris_of_satellites(data["data"])
+                if ext_ephemeris["System"] == 1:
+
+                    # Create dataset
+                    dataset = [[ext_ephemeris["PRN"], 
+                                ext_ephemeris["C_rs"],
+                                ext_ephemeris["dn"],
+                                ext_ephemeris["M_0"],
+                                ext_ephemeris["C_uc"],
+                                ext_ephemeris["e"],
+                                ext_ephemeris["C_us"],
+                                ext_ephemeris["sqrtA"],
+                                ext_ephemeris["t_oe"],
+                                ext_ephemeris["C_ic"],
+                                ext_ephemeris["Omega_0"],
+                                ext_ephemeris["I_0"],
+                                ext_ephemeris["C_rc"],
+                                ext_ephemeris["w"],
+                                ext_ephemeris["C_rc"],
+                                ext_ephemeris["Omega_dot"],
+                                ext_ephemeris["IDOT"],
+                                ext_ephemeris["T_GD"],
+                                ext_ephemeris["t_oc"],
+                                ext_ephemeris["a_f2"],
+                                ext_ephemeris["a_f1"],
+                                ext_ephemeris["a_f0"],
+                                ext_ephemeris["URA"],
+                                ext_ephemeris["IODE"],
+                                ext_ephemeris["IODC"],
+                                ext_ephemeris["CODEL2"],
+                                ext_ephemeris["L2 P Data Flag"],
+                                ext_ephemeris["WN"]
+                                ]]
+                    df_step = pd.DataFrame(dataset, columns=col_ext_ephemeris)   
+                    df_ext_ephemeris = df_ext_ephemeris.append(df_step)
+                    # TODO: Calculate and plot satellite positions
+                    # TODO: Calculate own position
             #time.sleep(0.1)
 except KeyboardInterrupt:
     reader.close()
 finally:
-    print(df.tail(10))
-    df.to_pickle("data/raw_data.pkl")  
+    print(df_ext_ephemeris.tail(10))
+    df_raw_data.to_pickle("data/raw_data.pkl") 
+    df_ext_ephemeris.to_pickle("data/ext_ephemeris.pkl") 

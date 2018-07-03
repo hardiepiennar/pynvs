@@ -627,7 +627,7 @@ def process_time_scales_parameters(data):
 
 def process_extended_ephemeris_of_satellites(data):
     """
-    Process the extended ephemeris packet F4h sent at the same interval
+    Process the extended ephemeris packet F7h sent at the same interval
     as the raw data.
 
     arguments:
