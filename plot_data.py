@@ -6,6 +6,11 @@ import numpy as np
 import matplotlib.pyplot as plt 
 import pandas as pd
 
+# TODO:
+# Create calc_sat_pos(time, ephemeris)
+# Try and calculate position using visible sats
+
+
 # Load ephemeris data
 df_eph = pd.read_pickle("data/ext_ephemeris.pkl")
 print(df_eph["PRN"])
@@ -27,81 +32,7 @@ plt.figure()
 
 
 for i in range(10):
-    # Constants
-    GM = 3.986005E14 # Product of gravitational constant G and mass of the earth M [m^3/s^2]
-    Omega_dot_e = 7.292115E-5 # Earth rotation rate [rad/s]
-    pi = 3.1415926535898 
-
-
-
-    sqrtA = df_eph.iloc[i]["sqrtA"] # Sqrt of the semi major axis m
-    dn =  df_eph.iloc[i]["dn"] # rad/ms
-    M_0 =  df_eph.iloc[i]["M_0"] # rad
-    t_0e = df_eph.iloc[i]["t_oe"] # Reference time ephemeris
-    t_0c = df_eph.iloc[i]["t_oc"] # Reference time clock
-    a_0 = df_eph.iloc[i]["a_f0"] # Clock corrections 
-    a_1 = df_eph.iloc[i]["a_f1"]
-    a_2 = df_eph.iloc[i]["a_f2"]
-    e = df_eph.iloc[i]["e"] # eccentricity #TODO: check this, should be less than 0.001
-    w = df_eph.iloc[i]["w"] # Argument of perigee (semicircles)
-    C_us = df_eph.iloc[i]["C_us"] # Corrections
-    C_uc = df_eph.iloc[i]["C_uc"]
-    C_rc = df_eph.iloc[i]["C_rc"]
-    C_rs = df_eph.iloc[i]["C_rs"]
-    C_ic = df_eph.iloc[i]["C_ic"] 
-    C_is = df_eph.iloc[i]["C_is"] 
-    I_0 = df_eph.iloc[i]["I_0"] 
-    IDOT = df_eph.iloc[i]["IDOT"] 
-    Omega_0 = df_eph.iloc[i]["Omega_0"]
-    Omega_dot = df_eph.iloc[i]["Omega_dot"]
-
-    # Get the measurement time
-    t = 59000000 # 5:30 Sunday 1 July 2018 [ms] comes from raw data
     
-    T = (2*pi)/(np.sqrt(GM)*(1/(sqrtA**3))) # Satellite orbital period
-
-    # Calculate the time from the epheremides epoch
-    t_k = (t - t_0e)/1000 # [s]
-    if t_k >= 302400:
-        t_k = t_k - 604800
-    elif t_k < -302400:
-        t_k = t_k + 604800
-
-    # Compute the mean anommally for tk
-    n_0 = np.sqrt(GM)*(1/sqrtA**3) # Computed mean motion
-    n = n_0 + dn # Corrected mean motion
-    M_k = M_0 + n*t_k # Mean anomaly
-
-    # Keplers equation of eccentricit. Iteratively solved
-    E_k = M_k
-    for i in range(5):
-        E_k = M_k + e*np.sin(E_k) 
-    # True anomaly
-    v_k = np.arccos((np.cos(E_k)-e)/(1-e*np.cos(E_k)))
-    v_k = np.arcsin((np.sqrt(1-e**2)*np.sin(E_k))/(1-e*np.cos(E_k)))
-
-    Phi_k = v_k + w # Argument of latitude
-
-    # Second harmonic pertubations
-    su_k = C_us*np.sin(2*Phi_k) + C_uc*np.cos(2*Phi_k) # latitude correction
-    sr_k = C_rc*np.cos(2*Phi_k) + C_rs*np.sin(2*Phi_k) # radius correction
-    si_k = C_ic*np.cos(2*Phi_k) + C_is*np.sin(2*Phi_k) # inclination correction
-
-    u_k = Phi_k + su_k # Corrected argument of latitude
-    r_k = (sqrtA**2)*(1-e*np.cos(E_k)) + sr_k # Corrected  radius
-    i_k = I_0 + si_k + IDOT*t_k # Corrected inclination
-
-    # Positions in orbital plane
-    xa_k = r_k*np.cos(u_k)
-    ya_k = r_k*np.sin(u_k)
-
-    # Corrected longitudinal ascending node
-    Omega_k = Omega_0 + (Omega_dot-Omega_dot_e)*t_k - Omega_dot_e*t_0e
-
-    # Earth Centered, Earth Fixed coordinates (ECEF)
-    x_k = xa_k*np.cos(Omega_k) - ya_k*np.cos(i_k)*np.sin(Omega_k)
-    y_k = xa_k*np.sin(Omega_k) - ya_k*np.cos(i_k)*np.cos(Omega_k)
-    z_k = ya_k*np.sin(i_k)
     
     # ax.scatter(x_k,y_k,z_k)
     # ax.set_xlim(-3e7,3e7)
