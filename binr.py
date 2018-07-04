@@ -650,7 +650,7 @@ def process_extended_ephemeris_of_satellites(data):
         e = struct.unpack('<d',bytearray(data[22:22+8]))[0]  # E
         c_us = struct.unpack('<f',bytearray(data[30:30+4]))[0]  # rad
         sqrtA = struct.unpack('<d',bytearray(data[34:34+8]))[0]  # m^1/2
-        t_oe = struct.unpack('<d',bytearray(data[42:42+8]))[0]  # ms
+        t_0e = struct.unpack('<d',bytearray(data[42:42+8]))[0]  # ms
         c_ic = struct.unpack('<f',bytearray(data[50:50+4]))[0]  # rad
         omega_0 = struct.unpack('<d',bytearray(data[54:54+8]))[0]  # rad
         c_is = struct.unpack('<f',bytearray(data[62:62+4]))[0]  # rad
@@ -660,7 +660,7 @@ def process_extended_ephemeris_of_satellites(data):
         omega_dot = struct.unpack('<d',bytearray(data[86:86+8]))[0]  # ms
         idot = struct.unpack('<d',bytearray(data[94:94+8]))[0]  # rad/ms
         t_gd = struct.unpack('<f',bytearray(data[102:102+4]))[0]  # ms
-        t_oc = struct.unpack('<d',bytearray(data[106:106+8]))[0]  # ms
+        t_0c = struct.unpack('<d',bytearray(data[106:106+8]))[0]  # ms
         a_f2 = struct.unpack('<f',bytearray(data[114:114+4]))[0]  # ms/ms^2
         a_f1 = struct.unpack('<f',bytearray(data[118:118+4]))[0]  # ms/ms
         a_f0 = struct.unpack('<f',bytearray(data[122:122+4]))[0]  # ms
@@ -672,10 +672,10 @@ def process_extended_ephemeris_of_satellites(data):
         weekN = struct.unpack('<H',bytearray(data[136:136+2]))[0]
 
         return {"System":sat_system, "PRN":sat_no, "C_rs":c_rs, "dn":dn, "M_0":m_0,
-                "C_uc":c_uc, "e":e,"C_us":c_us,"sqrtA":sqrtA, "t_oe":t_oe,
+                "C_uc":c_uc, "e":e,"C_us":c_us,"sqrtA":sqrtA, "t_0e":t_0e,
                 "C_ic":c_ic, "Omega_0":omega_0, "C_is":c_is, "I_0":i_0, 
                 "C_rc":c_rc, "w":w, "Omega_dot":omega_dot, "IDOT":idot,
-                "T_GD":t_gd, "t_oc":t_oc, "a_f2":a_f2, "a_f1":a_f1, 
+                "T_GD":t_gd, "t_0c":t_0c, "a_f2":a_f2, "a_f1":a_f1, 
                 "a_f0":a_f0, "URA":ura, "IODE":iode, "IODC":iodc, 
                 "CODEL2":codel2, "L2 P Data Flag":l2_pdata_flag, "WN":weekN}
 
@@ -695,7 +695,7 @@ def process_extended_ephemeris_of_satellites(data):
         tau_n = struct.unpack('<f',bytearray(data[87:87+4]))[0] # Satellite time scale offset value in relation to the GLONASS scale [ms]
         e_n = struct.unpack('<H',bytearray(data[91:91+2]))[0] # Satellite time scale offset value in relation to the GLONASS scale [ms]
 
-        return {"System":sat_system, "Sat No":sat_no, "H_n^A":HnA,
+        return {"System":sat_system, "PRN":sat_no, "H_n^A":HnA,
                 "x_n":xn, "y_n":yn, "z_n":zn, 
                 "x_nv":xnv, "y_nv":ynv, "z_nv":znv,
                 "x_na":xna, "y_na":yna, "z_na":zna,
