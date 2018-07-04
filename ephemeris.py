@@ -94,18 +94,18 @@ def calc_sat_xyz(t, eph):
     # Positions in orbital plane
     xa = r*np.cos(u)
     ya = r*np.sin(u)
+    cosi = np.cos(i)
 
     # Corrected longitudinal ascending node
     Omega = (eph["Omega_0"] + (eph["Omega_dot"]
             -OMGE)*t_k  
-            -OMGE*eph["t_0e"])
+            -OMGE*eph["t_0e"]/1000)
 
     # Earth Centered, Earth Fixed coordinates (ECEF)
-    cosi = np.cos(i)
     sinO = np.sin(Omega)
     cosO = np.cos(Omega)
     x_k = xa*cosO - ya*cosi*sinO
-    y_k = xa*sinO - ya*cosi*cosO
+    y_k = xa*sinO + ya*cosi*cosO
     z_k = ya*np.sin(i)
 
     # Calculate relativity correction
