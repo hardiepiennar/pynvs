@@ -43,7 +43,7 @@ def calc_sat_xyz(t, eph):
     # Get time difference between transmission and ephemeris 
     # reference time
 
-    t_k = t-eph["t_0e"]
+    t_k = t-eph["t_0e"]/1000
     if t_k >= 302400:
         t_k = t_k - 604800
     elif t_k < -302400:
@@ -108,12 +108,47 @@ def calc_sat_xyz(t, eph):
     y_k = xa*sinO + ya*cosi*cosO
     z_k = ya*np.sin(i)
 
-    # Calculate relativity correction
+    # Calculate clock correction
     # TODO: MU needs to be switched for GLONASS
-    t_k = t-eph["t_0c"]
-    sat_clk_bias = eph["a_f0"] + eph["a_f1"]*t_k + eph["a_f2"]*t_k**2
+    t_k = t-eph["t_0c"]/1000
+    sat_clk_bias = eph["a_f0"]/1000 + eph["a_f1"]/1000*t_k + eph["a_f2"]/1000*t_k**2
     sat_clk_bias = sat_clk_bias - 2*np.sqrt(MU_GPS*A)*e*sinE/(C**2)
 
-    return [x_k, y_k, z_k], sat_clk_bias
+    # Calculate relativistic effects
+    # TODO: implement this and return it
+    F = -4.442807633E-10
+    dt_r = F*e*eph["sqrtA"]*sinE
 
- 
+    return [x_k, y_k, z_k], sat_clk_bias, dt_r
+
+
+def calc_tx_time(rx_time, prng):
+    """
+    Calculate the transit time given the given pseudornage.
+
+    arguments:
+        rx_time - the raw data receive time [s]
+        prng - pseudorange [ms]
+    
+    returns:
+        tx_time - time at which the message was transmitted
+    """
+    #return rx_time - prng/C
+    return rx_time - prng/1000 # This is my own interpretation
+    # TODO:test this function
+    
+
+# TODO:
+# Next
+# Calculate multiple sat positions (store in position, pseudorange array)
+# Solve ECEF position
+
+# After next:
+# Use new range data to calculate time inputs
+# See if position converges
+
+# Future
+# Investigate single difference solution using phase
+# Create data structure with single differenced values
+# Gather single differenced datasets at same time
+# Calculate RTK position
