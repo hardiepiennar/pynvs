@@ -7,6 +7,7 @@ June 2018
 """
 
 import struct
+import numpy as np
 
 # Global variables
 WGS84 = 0
@@ -441,7 +442,9 @@ def process_raw_data(data):
         dictionary with data fields described in BINR Protocol v1.3 
         page 69.
     """
-
+    if not ((len(data)-28)%30 == 0):
+        print("Seems corrupted! "+str((len(data)-28)))
+    print(str((len(data)-28)))
     # Main 28 bytes
     tm = struct.unpack('<d',bytearray(data[0:0+8]))[0] # Time of measurements, UTC [ms]
     week_num = struct.unpack('<H',bytearray(data[8:8+2]))[0] # Week number
@@ -461,18 +464,59 @@ def process_raw_data(data):
     doppler_freq = [] # Hz
     flags = []
 
+
     # Process data
-    for i in range(0,num_channels):
-        offset = 28+i*30
-        # TODO: Something is funny here, channel 0 first few parameters corrupted
-        signal_type.append(struct.unpack('<B',bytearray(data[offset+0:offset+0+1]))[0])
-        sat_number.append(struct.unpack('<B',bytearray(data[offset+1:offset+1+1]))[0])
-        carrier_num.append(struct.unpack('<B',bytearray(data[offset+2:offset+2+1]))[0])
-        snr.append(struct.unpack('<B',bytearray(data[offset+3:offset+3+1]))[0])
-        carrier_phase.append(struct.unpack('<d',bytearray(data[offset+4:offset+4+8]))[0])
-        pseudo_range.append(struct.unpack('<d',bytearray(data[offset+12:offset+12+8]))[0])
-        doppler_freq.append(struct.unpack('<d',bytearray(data[offset+20:offset+20+8]))[0])
-        flags.append(struct.unpack('<B',bytearray(data[offset+28:offset+28+1]))[0])
+    yolo = True
+    offset = 27
+    for i in range(0,num_channels):  
+        signal_type.append(struct.unpack('<B',bytearray(data[offset:offset+1]))[0])
+        offset = offset + 1
+        sat_number.append(struct.unpack('<B',bytearray(data[offset:offset+1]))[0])
+        offset = offset + 1
+        carrier_num.append(struct.unpack('<b',bytearray(data[offset:offset+1]))[0])
+        offset = offset + 1
+        snr.append(struct.unpack('<B',bytearray(data[offset:offset+1]))[0])
+        offset = offset + 1
+
+        carrier_phase.append(struct.unpack('<d',bytearray(data[offset:offset+8]))[0])
+        if carrier_phase[-1] > 1e10 or carrier_phase[-1] < -1e10:
+            offset = offset +1
+            carrier_phase[-1] = struct.unpack('<d',bytearray(data[offset:offset+8]))[0]
+        # if carrier_phase[-1] < 1e-50 and carrier_phase[-1] > -1e-50:
+        #     offset = offset +1
+        #     carrier_phase[-1] = struct.unpack('<d',bytearray(data[offset:offset+8]))[0]
+        offset = offset + 8
+
+        pseudo_range.append(struct.unpack('<d',bytearray(data[offset:offset+8]))[0])
+        if pseudo_range[-1] > 1e10 or pseudo_range[-1] < -1e10:
+            offset = offset +1
+            pseudo_range[-1] = struct.unpack('<d',bytearray(data[offset:offset+8]))[0]
+        if pseudo_range[-1] < 1e-50 and pseudo_range[-1] > -1e-50:
+            offset = offset +1
+            pseudo_range[-1] = struct.unpack('<d',bytearray(data[offset:offset+8]))[0]
+        offset = offset + 8
+
+        doppler_freq.append(struct.unpack('<d',bytearray(data[offset:offset+8]))[0])
+        if doppler_freq[-1] < 1e-50 and doppler_freq[-1] > -1e-50:
+            offset = offset +1
+            doppler_freq[-1] = struct.unpack('<d',bytearray(data[offset:offset+8]))[0]
+            print("range error")
+        if doppler_freq[-1] < -1E5 or doppler_freq[-1] > 1E5:
+            offset = offset +1
+            doppler_freq[-1] = struct.unpack('<d',bytearray(data[offset:offset+8]))[0]
+        if doppler_freq[-1] < 1e-50 and doppler_freq[-1] > -1e-50:
+            offset = offset +1
+            doppler_freq[-1] = struct.unpack('<d',bytearray(data[offset:offset+8]))[0]
+            print("range error")
+        if doppler_freq[-1] < -1E5 or doppler_freq[-1] > 1E5:
+            offset = offset +1
+            doppler_freq[-1] = struct.unpack('<d',bytearray(data[offset:offset+8]))[0]
+            
+        offset = offset + 8
+
+        flags.append(struct.unpack('<B',bytearray(data[offset:offset+1]))[0])
+        offset = offset + 1
+        offset = offset + 1
          
     return {"Time":tm, "Week Number": week_num, "GPS time shift": gps_time_shift, 
             "GLO time shift": glo_time_shift, "Rec Time Scale Correction": rec_t_corr,
@@ -493,26 +537,27 @@ def print_raw_data(raw_data):
     num_channels = len(raw_data["Signal Type"])
     print("Number of channels: "+str(num_channels))
     print("---------------------------------------------------")
-    print("Ch\tSystem(ID)\tCarrier\tSNR\tPhase\t\tPseudorange\t\tDoppler\t\tFlags")
-    for i in range(num_channels):
-        if raw_data["Signal Type"][i] > 0:
-            skip = False
+    print("Ch\tSystem(ID)\tCarrier\tSNR\tPhase\t\tPseudorange\tDoppler\t\tSignal\tPrngDop\tSmooth\tCarrier\tFPrng\tNo Pre-amble")
+    for i in range(20):
+        if i < num_channels:
             if raw_data["Signal Type"][i] == 1:
-                system_name = "GLO"
+                system_name = "GLO"+"("+str(raw_data["Sat Number"][i])+")"
             elif raw_data["Signal Type"][i] == 2:
-                system_name = "GPS"
+                system_name = "GPS"+"("+str(raw_data["Sat Number"][i])+")"
             elif raw_data["Signal Type"][i] == 4:
-                system_name = "SBA"     
+                system_name = "SB"+"("+str(raw_data["Sat Number"][i])+")"
             else:
                 system_name = raw_data["Signal Type"][i]
-                skip = True
-            if skip:
-                print("---")
-            else:
-                fmt = "{:.5E}"
-                print(str(i)+"\t"+str(system_name)+"("+str(raw_data["Sat Number"][i])+")\t\t"+str(raw_data["Carrier Number"][i])+"\t"+
-                    str(raw_data["SNR"][i])+"\t"+fmt.format(raw_data["Carrier Phase"][i])+"\t"+fmt.format(raw_data["Pseudo Range"][i])+"\t"+
-                    str(raw_data["Doppler Freq"][i])+"\t"+str(raw_data["Flags"][i]))
+            fmt = "{:.5E}"
+            print(str(i)+"\t"+str(system_name)+"\t\t"+str(raw_data["Carrier Number"][i])+"\t"+
+                str(raw_data["SNR"][i])+"\t"+fmt.format(raw_data["Carrier Phase"][i])+"\t"+fmt.format(raw_data["Pseudo Range"][i])+"\t"+
+                fmt.format(raw_data["Doppler Freq"][i])+"\t"+
+                str(raw_data["Flags"][i]&0x01>0)+"\t"+
+                str(raw_data["Flags"][i]&0x02>0)+"\t"+
+                str(raw_data["Flags"][i]&0x04>0)+"\t"+
+                str(raw_data["Flags"][i]&0x08>0)+"\t"+
+                str(raw_data["Flags"][i]&0x10>0)+"\t"+
+                str(raw_data["Flags"][i]&0x20>0)+"\t")
         else:
             print("---")
 
