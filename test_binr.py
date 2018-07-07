@@ -260,8 +260,8 @@ class Tests(unittest.TestCase):
         self.assertEquals(raw["Carrier Number"][2],1)
         self.assertEquals(raw["Carrier Phase"][2],284426.2083882555)
         self.assertEquals(raw["Pseudo Range"][2],73.36030865681823)
-        self.assertEquals(raw["Doppler Freq"][2],-2.1184331551132058e-122)
-        self.assertEquals(raw["Flags"][2],192)
+        self.assertEquals(raw["Doppler Freq"][2],-2902.0040288167074)
+        self.assertEquals(raw["Flags"][2],123)
     
     def test_process_software_version(self):
         # Test data

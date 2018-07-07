@@ -28,13 +28,13 @@ class Tests(unittest.TestCase):
         t = 58374000.14730411/1000
 
         # Run function
-        pos, sat_clk_bias = ephemeris.calc_sat_xyz(t,eph)
+        pos, sat_clk_bias, dt_r = ephemeris.calc_sat_xyz(t,eph)
         
         # Check output of function
-        self.assertEquals(pos[0],22541255.091432475)
-        self.assertEquals(pos[1],13680697.110073447)
-        self.assertEquals(pos[2],4578677.2463169703)
-        self.assertEquals(sat_clk_bias,-0.061317425526771774)
-
-        
-        
+        self.assertEquals(pos[0],12609667.744728811)
+        self.assertEquals(pos[1],-20496207.098995764)
+        self.assertEquals(pos[2],11337473.897957033
+        )
+        self.assertEquals(sat_clk_bias,-6.1549414555349904e-05)
+        self.assertEquals(dt_r,3.5336684847128199e-09)      
+    

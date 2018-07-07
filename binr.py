@@ -446,14 +446,27 @@ def process_raw_data(data):
         print("Seems corrupted! "+str((len(data)-28)))
     print(str((len(data)-28)))
     # Main 28 bytes
-    tm = struct.unpack('<d',bytearray(data[0:0+8]))[0] # Time of measurements, UTC [ms]
+    offset = 0
+    value, slip = read_double(data,offset, min=0, max=1E10, allow_negative=False, tries=5)
+    offset = offset + 8 + slip
+    tm = value # Time of measurements, UTC [ms] 
+
     week_num = struct.unpack('<H',bytearray(data[8:8+2]))[0] # Week number
-    gps_time_shift = struct.unpack('<d',bytearray(data[10:10+8]))[0] # GPS-UTC time shift [ms]
-    glo_time_shift = struct.unpack('<d',bytearray(data[18:18+8]))[0] # GLONASS-UTC time shift [ms]
-    rec_t_corr = struct.unpack('<b',bytearray(data[26:26+1]))[0] # Receiver Time Scale Correction [ms]
+    offset = offset + 2
+    
+    value, slip = read_double(data,offset, min=None, max=1E10, tries=5)
+    offset = offset + 8 + slip
+    gps_time_shift = value # GPS-UTC time shift [ms]
+
+    value, slip = read_double(data,offset, min=None, max=1E10, tries=5)
+    offset = offset + 8 + slip
+    glo_time_shift = value # GLONASS-UTC time shift [ms]
+
+    rec_t_corr = struct.unpack('<b',bytearray(data[offset:offset+1]))[0] # Receiver Time Scale Correction [ms]
+    offset = offset +1
 
     # 30*number of channels used
-    num_channels = int((len(data) - 28)/30)
+    num_channels = int((len(data) - offset)/30)
     # Create storage structures
     signal_type = [] # 1-GLONASS, 2-GPS, 4-SBAS
     sat_number = []
@@ -466,8 +479,6 @@ def process_raw_data(data):
 
 
     # Process data
-    yolo = True
-    offset = 27
     for i in range(0,num_channels):  
         signal_type.append(struct.unpack('<B',bytearray(data[offset:offset+1]))[0])
         offset = offset + 1
@@ -478,41 +489,17 @@ def process_raw_data(data):
         snr.append(struct.unpack('<B',bytearray(data[offset:offset+1]))[0])
         offset = offset + 1
 
-        carrier_phase.append(struct.unpack('<d',bytearray(data[offset:offset+8]))[0])
-        if carrier_phase[-1] > 1e10 or carrier_phase[-1] < -1e10:
-            offset = offset +1
-            carrier_phase[-1] = struct.unpack('<d',bytearray(data[offset:offset+8]))[0]
-        # if carrier_phase[-1] < 1e-50 and carrier_phase[-1] > -1e-50:
-        #     offset = offset +1
-        #     carrier_phase[-1] = struct.unpack('<d',bytearray(data[offset:offset+8]))[0]
-        offset = offset + 8
+        value, slip = read_double(data,offset, min=None, max=1E10, tries=5)
+        offset = offset + 8 + slip
+        carrier_phase.append(value)
 
-        pseudo_range.append(struct.unpack('<d',bytearray(data[offset:offset+8]))[0])
-        if pseudo_range[-1] > 1e10 or pseudo_range[-1] < -1e10:
-            offset = offset +1
-            pseudo_range[-1] = struct.unpack('<d',bytearray(data[offset:offset+8]))[0]
-        if pseudo_range[-1] < 1e-50 and pseudo_range[-1] > -1e-50:
-            offset = offset +1
-            pseudo_range[-1] = struct.unpack('<d',bytearray(data[offset:offset+8]))[0]
-        offset = offset + 8
+        value, slip = read_double(data,offset, min=1e-50, max=1E10, tries=5)
+        offset = offset + 8 + slip
+        pseudo_range.append(value)
 
-        doppler_freq.append(struct.unpack('<d',bytearray(data[offset:offset+8]))[0])
-        if doppler_freq[-1] < 1e-50 and doppler_freq[-1] > -1e-50:
-            offset = offset +1
-            doppler_freq[-1] = struct.unpack('<d',bytearray(data[offset:offset+8]))[0]
-            print("range error")
-        if doppler_freq[-1] < -1E5 or doppler_freq[-1] > 1E5:
-            offset = offset +1
-            doppler_freq[-1] = struct.unpack('<d',bytearray(data[offset:offset+8]))[0]
-        if doppler_freq[-1] < 1e-50 and doppler_freq[-1] > -1e-50:
-            offset = offset +1
-            doppler_freq[-1] = struct.unpack('<d',bytearray(data[offset:offset+8]))[0]
-            print("range error")
-        if doppler_freq[-1] < -1E5 or doppler_freq[-1] > 1E5:
-            offset = offset +1
-            doppler_freq[-1] = struct.unpack('<d',bytearray(data[offset:offset+8]))[0]
-            
-        offset = offset + 8
+        value, slip = read_double(data,offset, min=1e-50, max=1E5, tries=5)
+        offset = offset + 8 + slip
+        doppler_freq.append(value) 
 
         flags.append(struct.unpack('<B',bytearray(data[offset:offset+1]))[0])
         offset = offset + 1
@@ -524,6 +511,46 @@ def process_raw_data(data):
             "Carrier Number":carrier_num, "SNR":snr,
             "Carrier Phase":carrier_phase, "Pseudo Range": pseudo_range,
             "Doppler Freq":doppler_freq, "Flags":flags}
+
+def read_double(data, offset, min=None, max=1E10, allow_negative=True, tries=1):
+    """
+    Reads a double from the given byte stream at a specified offset position.
+    The binr raw_data sometimes has a 0 in front of float values. Not sure where 
+    they come from. At the moment this is easily handled by detecting an out of
+    range value and start reading the double 1 byte later.
+
+    arguments: 
+        data - list of bytes to read double from
+        offset - index to start reading double
+        min - minimum valid value
+        max - maximum valid value
+        tries - number of tries allowed (to avoid infinite loops)
+        allow_negative - if False, range error will be triggered on negative values
+
+    returns:
+        value - double value that has been read
+        slip - number of spurious zeros we skipped
+    """
+    slip = 0 # keeps track of the number of zero jumps
+    tried = 0 # keeps track of the number of times we tried
+    
+    range_error = True # Error cleared when a valid value is read.
+    while tried < tries and range_error:
+        # Try and read the value
+        value = struct.unpack('<d',bytearray(data[offset+slip:offset+slip+8]))[0]
+
+        # Check if the value is stupid
+        if np.abs(value) > max or (not (min == None) and np.abs(value) < min) or (not allow_negative and value < 0):
+            slip = slip + 1
+        else:
+            range_error = False # It was valid
+        
+        tried = tried + 1
+    
+    return value, slip
+        
+            
+        
 
 def print_raw_data(raw_data):
     """
