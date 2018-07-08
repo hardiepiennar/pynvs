@@ -24,7 +24,7 @@ ser.write("$PORZA,0,115200,3*7E\r\n".encode())
 ser.close()
 
 time.sleep(1)
-
+assert(False)
 # Connect to device
 print("Connecting to serial port [BINR 115200]")
 ser = serial.Serial(port, 115200, parity=serial.PARITY_ODD, timeout=1)

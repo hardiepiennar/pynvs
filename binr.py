@@ -442,9 +442,6 @@ def process_raw_data(data):
         dictionary with data fields described in BINR Protocol v1.3 
         page 69.
     """
-    if not ((len(data)-28)%30 == 0):
-        print("Seems corrupted! "+str((len(data)-28)))
-    print(str((len(data)-28)))
     # Main 28 bytes
     offset = 0
     value, slip = read_double(data,offset, min=0, max=1E10, allow_negative=False, tries=5)
@@ -489,7 +486,7 @@ def process_raw_data(data):
         snr.append(struct.unpack('<B',bytearray(data[offset:offset+1]))[0])
         offset = offset + 1
 
-        value, slip = read_double(data,offset, min=None, max=1E10, tries=5)
+        value, slip = read_double(data,offset, min=1e-50, max=1E10, tries=5)
         offset = offset + 8 + slip
         carrier_phase.append(value)
 
@@ -540,7 +537,9 @@ def read_double(data, offset, min=None, max=1E10, allow_negative=True, tries=1):
         value = struct.unpack('<d',bytearray(data[offset+slip:offset+slip+8]))[0]
 
         # Check if the value is stupid
-        if np.abs(value) > max or (not (min == None) and np.abs(value) < min) or (not allow_negative and value < 0):
+        if (np.abs(value) > max or 
+           (not (min == None) and np.abs(value) < min) and (not value == 0) or 
+           (not allow_negative and value < 0)):
             slip = slip + 1
         else:
             range_error = False # It was valid

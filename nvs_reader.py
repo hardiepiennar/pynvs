@@ -11,12 +11,13 @@ import os
 import time
 
 # Parameters
-filename = "recording.dat"
+filename = "pelham_shed_1_July_2018.dat"
 
 # Open file for reading
 reader = open(filename, 'rb')
 
 # Count messages
+print("Starting read loop")
 buffer = []
 try:
     while True:
@@ -29,9 +30,11 @@ try:
         try:
             data, buffer = binr.process_msg(buffer)
             print("Msg: "+str(data["ID"])+" buffer length: "+str(len(buffer)))
+            if data["ID"] == 0xF5:
+                print(bytearray(data["data"]))
         except ValueError:
             print("Buffer length: "+str(len(buffer)))  
-        time.sleep(0.5)
+        time.sleep(0.01)
 except KeyboardInterrupt:
     reader.close()
 
