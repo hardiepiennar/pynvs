@@ -25,23 +25,15 @@ print("Connecting to serial port [BINR 115200]")
 ser = serial.Serial(port, 115200, parity=serial.PARITY_ODD, timeout=0.5)
 #ser = open("pelham_shed_1_July_2018.dat",'rb')
 
-# Request current receiver channels status
-#print("Requesting receiver channels status")
-#ser.write(binr.request_status_of_receiver_channels())
-#buffer = ser.read(1000)
-#data, buffer = binr.process_msg(buffer)
-#channel_status = binr.process_status_of_receiver_channels(data["data"])
-#binr.print_status_of_receiver_channels(channel_status)
-
-#print("Requesting satellite ephemeris")
-#ser.write(binr.cancel_requests())
-#time.sleep(0.5)
-#ser.write(binr.request_sv_ephemeris(binr.GPS, 3,-3))
+print("Requesting satellite ephemeris")
+ser.write(binr.cancel_requests())
+time.sleep(0.5)
+ser.write(binr.request_sv_ephemeris_all())
 #buffer = ser.read(1000)
 #data, buffer = binr.process_msg(buffer) 
 
-print("Requesting raw data stream")
-ser.write(binr.request_raw_data(10))
+#print("Requesting raw data stream")
+#ser.write(binr.request_raw_data(10))
 buffer = []
 try:
     while True:
@@ -54,9 +46,12 @@ try:
                 print("Msg: "+str(hex(data["ID"]))+": "+
                       str(len(data["data"]))+" bytes : "+
                       str(bytearray(data["data"][0:50])))
-                if data["ID"] == 0xF5:
-                   raw_data = binr.process_raw_data(data["data"])
-                   binr.print_raw_data(raw_data)
+                if data["ID"] == 0x49:
+                    msg = binr.process_sv_ephemeris(data["data"])
+                    if(msg["System"]==1):
+                        print("GPS PRN: "+str(msg["PRN"]))
+                    if(msg["System"]==2):
+                        print("GLONASS nA: "+str(msg["n^A"]))
             time.sleep(0.1)
         except ValueError:
                 s = 1

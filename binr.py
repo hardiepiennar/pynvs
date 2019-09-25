@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 NVS BINR protocol functions.
 
@@ -335,6 +336,16 @@ def request_sv_ephemeris(sat_system, sat_no, carrier=None):
     packet = [0x10, 0x19, sat_system, sat_no]
     if carrier != None:
         packet = packet + [(256-(carrier*-1))]
+    packet = packet + [0x10, 0x03]
+
+    return packet
+
+def request_sv_ephemeris_all():
+    """
+    Requests the ephemerides of all available satas.
+    """
+    # Create package
+    packet = [0x10, 0x19, 0xFF, 0x01]
     packet = packet + [0x10, 0x03]
 
     return packet
